@@ -1,4 +1,16 @@
-<!DOCTYPE html>
+<!-- 메인 화면 -->
+<div id="mainMenu" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(to right, #0f2027, #203a43, #2c5364); color: #fff; font-family: 'Orbitron', sans-serif;">
+  <h1 style="font-size: 4em; color: #00ffe7; text-shadow: 0 0 15px #00ffe7;">⚡ Energy Clicker</h1>
+  <p style="font-size: 1.3em; margin: 20px; max-width: 600px; text-align: center;">
+    클릭으로 석유를 시추해서 에너지를 얻고 건물을 건설하여 다른 행성을 테라포밍 하세요!
+  </p>
+  <button onclick="startGame(true)" style="padding: 15px 30px; font-size: 1.2em; border-radius: 12px; background: linear-gradient(145deg, #5f64ff, #6f70ff); color: white; cursor: pointer; box-shadow: 0 5px 15px rgba(0, 0, 255, 0.4);">새 게임 시작</button>
+  <button id="continueButton" onclick="startGame(false)" style="display: none; padding: 12px 28px; font-size: 1em; border-radius: 10px; background: #444; color: white; margin-top: 15px;">저장된 게임 이어하기</button>
+</div>
+
+<!-- 게임 본문을 감싸는 div (처음엔 숨김) -->
+<div id="gameContainer" style="display: none;">
+  <!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
@@ -466,3 +478,26 @@ setInterval(() => {
   </script>
 </body>
 </html>
+
+</div>
+
+<script>
+  // 게임 시작: isNew = true면 새로 시작, false면 이어서
+  function startGame(isNew) {
+    if (isNew) {
+      localStorage.clear(); // 새 게임이면 기존 데이터 삭제
+    }
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'block';
+    if (typeof window.onload === 'function') {
+      window.onload(); // 기존 onload 실행
+    }
+  }
+
+  // 페이지 로드 시 저장된 게임이 있는지 확인
+  window.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('energy')) {
+      document.getElementById('continueButton').style.display = 'inline-block';
+    }
+  });
+</script>
