@@ -480,19 +480,117 @@ setInterval(() => {
 </html>
 
 </div>
+<style>
+  /* 배경에 별 움직이는 애니메이션 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background: url('https://cdn.pixabay.com/photo/2017/08/30/00/05/stars-2695565_1280.jpg') repeat;
+    background-size: cover;
+    animation: moveStars 60s linear infinite;
+    opacity: 0.2;
+    z-index: -1;
+  }
+
+  @keyframes moveStars {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-50%, -50%); }
+  }
+
+  /* 팝업 스타일 */
+  #storyPopup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 50, 0.95);
+    padding: 30px;
+    border-radius: 20px;
+    color: #aefbff;
+    font-size: 1.2em;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 0 30px rgba(0,255,255,0.5);
+    display: none;
+    z-index: 1000;
+    text-align: center;
+  }
+  #storyPopup button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background: #5f64ff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+</style>
+
+<div id="storyPopup">
+  <div id="storyText"></div>
+  <button onclick="closeStory()">확인</button>
+</div>
+
+<script>
+function showStory(text) {
+  document.getElementById('storyText').innerHTML = text;
+  document.getElementById('storyPopup').style.display = 'block';
+}
+
+function closeStory() {
+  document.getElementById('storyPopup').style.display = 'none';
+}
+
+function startGame(isNew) {
+  if (isNew) {
+    localStorage.clear();
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'block';
+    showStory("서기 2247년. 인류는 새로운 행성을 개척하기 위해 인류는 새로운 행성을 찾아 우주로 떠났다.<br><br>당신의 임무는 새로운 행성을 테라포밍하여 우주를 개척하는 것이다.");
+  } else {
+    document.getElementById('mainMenu').style.display = 'none';
+    document.getElementById('gameContainer').style.display = 'block';
+  }
+  if (typeof window.onload === 'function') {
+    window.onload();
+  }
+}
+
+function terraformPlanet() {
+  if (energy >= terraformCost) {
+    gameOver = true;
+    showStory("새로운 별에 푸른 생명이 깃들었다.<br><br>당신이 이 행성을 테라포밍 했다.<br>이제 이곳에서도 살 수 있을 것이다.");
+    document.getElementById('terraformButton').style.display = 'block';
+    checkAchievements();
+    saveData();
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('energy')) {
+    document.getElementById('continueButton').style.display = 'inline-block';
+  }
+});
+</script>
+
 
 <script>
   // 게임 시작: isNew = true면 새로 시작, false면 이어서
-  function startGame(isNew) {
-    if (isNew) {
-      localStorage.clear(); // 새 게임이면 기존 데이터 삭제
-    }
-    document.getElementById('mainMenu').style.display = 'none';
-    document.getElementById('gameContainer').style.display = 'block';
-    if (typeof window.onload === 'function') {
-      window.onload(); // 기존 onload 실행
-    }
+ function startGame(isNew) {
+  if (isNew) {
+    localStorage.clear(); // 저장 지우고 새로 시작
   }
+  document.getElementById('mainMenu').style.display = 'none'; // 메인 화면 숨기기
+  document.getElementById('gameContainer').style.display = 'block'; // 게임 화면 보이기
+  if (typeof window.onload === 'function') {
+    window.onload(); // 기존 onload 실행
+  }
+}
 
   // 페이지 로드 시 저장된 게임이 있는지 확인
   window.addEventListener('DOMContentLoaded', () => {
