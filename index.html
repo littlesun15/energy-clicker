@@ -98,6 +98,7 @@ button:hover {
     <h1>⚡ Energy Clicker</h1>
     <button onclick="startNewGame()">🎮 새 게임 시작</button>
     <button id="continueButton" onclick="continueGame()" style="display: none;">💾 저장된 게임 이어하기</button>
+<button onclick="startNewMode()">🪐 새로운 모드 (Coming Soon)</button>
   </div>
 
   <!-- 게임 화면 -->
@@ -227,9 +228,10 @@ button:hover {
       fusionMaster: { name: "핵융합 마스터", condition: () => fusionPlants >= 5, unlocked: false },
       dysonOwner: { name: "2형 문명", condition: () => dysonSpheres >= 1, unlocked: false },
       blackholeBoss: { name: "블랙홀 활용가", condition: () => blackholes >= 1, unlocked: false },
-      bigbangBreaker: { name: "빅뱅을 다룰 줄 아는 자", condition: () => bigbangs >= 1, unlocked: false },
-      terraformer: { name: "테라포밍 성공!", condition: () => gameEnded, unlocked: false }
-    };
+      bigbangBreaker: { name: "빅뱅의 에너지", condition: () => bigbangs >= 1, unlocked: false },
+      terraformer: { name: "테라포밍 성공!", condition: () => gameEnded, unlocked: false },
+      sun: { name: "태양", condition: () => fusionPlants >= 10, unlocked: false }
+};
 
     function gainEnergy() {
       document.getElementById('clickSound').play();
@@ -417,13 +419,19 @@ button:hover {
       restartGame();
     }
 
-    function continueGame() {
-      document.getElementById('mainMenu').style.display = 'none';
-      document.getElementById('gameScreen').style.display = 'block';
-      loadAchievements();
-      loadGame();
-      updateDisplay();
-    }
+  function continueGame() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  loadAchievements();
+  loadGame();
+  updateDisplay();
+}
+
+function startNewMode() {
+  alert("아직 준비 중인 모드입니다! 기대해 주세요 :)");
+}
+
+
 function goToMainMenu() {
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('mainMenu').style.display = 'block';
