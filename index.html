@@ -93,13 +93,20 @@ button:hover {
 <body>
   <canvas id="starCanvas"></canvas>
 
-  <!-- 메인 메뉴 -->
-  <div id="mainMenu">
-    <h1>⚡ Energy Clicker</h1>
-    <button onclick="startNewGame()">🎮 새 게임 시작</button>
-    <button id="continueButton" onclick="continueGame()" style="display: none;">💾 저장된 게임 이어하기</button>
-<button onclick="startNewMode()">🪐 새로운 모드 (Coming Soon)</button>
+<!-- 메인 메뉴 -->
+<div id="mainMenu">
+  <h1>⚡ Energy Clicker</h1>
+  <div id="mainDesc" style="margin: 15px 0 20px 0; font-size:1.1em; color:#b2ebf2; text-shadow:0 0 5px #26c6da;">
+    클릭해서 에너지를 모으고,<br>
+    다양한 발전소를 건설해 우주를 지배하세요!<br>
+    발전소를 업그레이드하고, 테라포밍에 도전해<br>
+    최고의 에너지 마스터가 되어보세요!<br><br>
+    제작자: 정이준
   </div>
+  <button onclick="startNewGame()">🎮 새 게임 시작</button>
+  <button id="continueButton" onclick="continueGame()" style="display: none;">💾 저장된 게임 이어하기</button>
+  <button onclick="startNewMode()">🪐 새로운 모드 (Coming Soon)</button>
+</div>
 
   <!-- 게임 화면 -->
   <div id="gameScreen" style="display: none;">
@@ -419,18 +426,17 @@ button:hover {
       restartGame();
     }
 
-  function continueGame() {
-  document.getElementById('mainMenu').style.display = 'none';
-  document.getElementById('gameScreen').style.display = 'block';
-  loadAchievements();
-  loadGame();
-  updateDisplay();
-}
+    function continueGame() {
+      document.getElementById('mainMenu').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      loadAchievements();
+      loadGame();
+      updateDisplay();
+    }
 
 function startNewMode() {
   alert("아직 준비 중인 모드입니다! 기대해 주세요 :)");
 }
-
 
 function goToMainMenu() {
   document.getElementById('gameScreen').style.display = 'none';
