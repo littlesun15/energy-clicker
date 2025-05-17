@@ -112,10 +112,8 @@
   <div id="mainMenu">
     <h1>⚡ Energy Clicker</h1>
     <div id="mainDesc" style="margin: 15px 0 20px 0; font-size:1.1em; color:#b2ebf2; text-shadow:0 0 5px #26c6da;">
-      클릭해서 에너지를 모으고,<br>
-      다양한 발전소를 건설해 우주를 지배하세요!<br>
-      발전소를 업그레이드하고, 테라포밍에 도전해<br>
-      최고의 에너지 마스터가 되어보세요!<br><br>
+      클릭해서 석유를 시추하고,<br>
+      다양한 발전소를 건설해 다른 행성을 테라포밍 하세요!<br><br>
       제작자: 정이준
     </div>
     <button onclick="startNewGame()">🎮 새 게임 시작</button>
@@ -127,9 +125,9 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 변경내용: 각종 버그 수정, 공지사항 메뉴 추가<br>
-    - 각종 모드 준비 중! 기대해 주세요!<br><br>
-    -현재 버전: 1.0.0
+    - 패치노트: 자잘자잘한 것들 수정,밸런스 패치(상승률 1.1배),새로운 모드 추가<br>
+    - 이 게임에 추가하고 싶은거 있으시면 카톡이나 메세지로 보내주세요~<br><br>
+    -현재 버전: 1.1.6
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -139,14 +137,24 @@
     <h1>🚩 도전 모드 선택</h1>
     <div id="challengeList">
       <button onclick="showTimeAttackMenu()">⏱️ 타임어택 모드</button>
+      <button onclick="showLandModeMenu()">🌎 땅 부족 모드</button>
     </div>
     <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
   </div>
+<div id="landModeMenu" style="display:none;">
+  <h1>🌎 땅 부족 모드</h1>
+  <div style="margin:10px 0 30px 0; font-size:1.05em;">
+    각 발전소 최대 10개 제한!<br>언제든 저장/불러오기 가능
+  </div>
+  <button onclick="startLimitedLandGame()">🌱 새 땅 부족 모드 시작</button>
+  <button id="continueLandModeBtn" onclick="continueLimitedLandGame()" style="display:none;">💾 저장된 땅 부족 이어하기</button>
+  <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
+</div>
 
   <!-- 타임어택 모드 시작 메뉴 -->
   <div id="timeAttackMenu">
     <h1>⏱️ 타임어택 모드</h1>
-    <div style="margin:10px 0 30px 0; font-size:1.05em;">15분 안에 테라포밍을 성공하면 클리어!<br>진행 중 언제든 저장/불러오기 가능</div>
+    <div style="margin:10px 0 30px 0; font-size:1.05em;">25분 안에 테라포밍을 성공하면 클리어!<br>진행 중 언제든 저장/불러오기 가능</div>
     <button onclick="startTimeAttackGame()">⏰ 새 타임어택 시작</button>
     <button id="continueTimeAttackBtn" onclick="continueTimeAttackGame()" style="display:none;">💾 저장된 타임어택 이어하기</button>
     <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
@@ -154,12 +162,16 @@
 
   <!-- 남은 시간 박스 -->
   <div id="timerBox"></div>
+</div>
 
   <!-- 게임 화면 (기존) -->
   <div id="gameScreen" style="display: none;">
     <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f23b7d3083.mp3" preload="auto"></audio>
     <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_96e0576b8b.mp3" loop preload="auto"></audio>
-    <h1>⚡ Energy Clicker</h1>
+ <div id="landLimitNotice" style="display:none; color:#ffcc80; font-weight:bold; margin-bottom:10px;">
+  🌎 <b>땅 부족 모드</b>: 각 발전소 최대 10개까지만 건설 가능!
+</div>
+   <h1>⚡ Energy Clicker</h1>
     <div id="energy">에너지: 0</div>
     <div id="productionRate">초당 생산량: 0</div>
     <div id="clickPower">클릭당 에너지: 1</div>
@@ -272,6 +284,7 @@ function isPaused() {
   let blackholes = 0, blackholeCost = 750000;
   let bigbangs = 0, bigbangCost = 5000000;
   let inTimeAttack = false; // 타임어택 모드 여부
+  let inLimitedLandMode = false;
   let timeLeft = 1500; // 25분(초 단위)
   let timer = null;
 
@@ -299,6 +312,7 @@ function isPaused() {
   function showChallengeMenu() {
     hideAllMenus();
     document.getElementById('challengeMenu').style.display = 'block';
+    document.getElementById('landModeMenu').style.display = 'none';
   }
  function backToMainMenu() {
   hideAllMenus();
@@ -314,6 +328,7 @@ function isPaused() {
     prev = null;
     timeAttackPaused = false;
   }
+  inLimitedLandMode = false;
 }
   function showTimeAttackMenu() {
     hideAllMenus();
@@ -324,6 +339,15 @@ function isPaused() {
       document.getElementById('continueTimeAttackBtn').style.display = 'none';
     }
   }
+function showLandModeMenu() {
+  hideAllMenus();
+  document.getElementById('landModeMenu').style.display = 'block';
+  if (localStorage.getItem('land_energy')) {
+    document.getElementById('continueLandModeBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('continueLandModeBtn').style.display = 'none';
+  }
+}
   function showGameScreen() {
     hideAllMenus();
     document.getElementById('gameScreen').style.display = 'block';
@@ -346,7 +370,34 @@ function isPaused() {
     startTimeAttackTimer();
     updateDisplay();
   }
-  function continueTimeAttackGame() {
+ function startLimitedLandGame() {
+  inTimeAttack = false;
+  inLimitedLandMode = true;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  dysonSpheres = 0; dysonCost = 20000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'block';
+}
+function continueLimitedLandGame() {
+  inTimeAttack = false;
+  inLimitedLandMode = true;
+  gameEnded = false;
+  loadLimitedLandGame();
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'block';
+}
+ function continueTimeAttackGame() {
     inTimeAttack = true;
     gameEnded = false;
     loadTimeAttack();
@@ -449,6 +500,46 @@ function updateTimerDisplay() {
       'ta_timeLeft'
     ].forEach(key => localStorage.removeItem(key));
   }
+function saveLimitedLandGame() {
+  localStorage.setItem('land_energy', energy);
+  localStorage.setItem('land_clickPower', clickPower);
+  localStorage.setItem('land_upgradeCost', upgradeCost);
+  localStorage.setItem('land_generators', generators);
+  localStorage.setItem('land_generatorCost', generatorCost);
+  localStorage.setItem('land_fusionPlants', fusionPlants);
+  localStorage.setItem('land_fusionCost', fusionCost);
+  localStorage.setItem('land_dysonSpheres', dysonSpheres);
+  localStorage.setItem('land_dysonCost', dysonCost);
+  localStorage.setItem('land_blackholes', blackholes);
+  localStorage.setItem('land_blackholeCost', blackholeCost);
+  localStorage.setItem('land_bigbangs', bigbangs);
+  localStorage.setItem('land_bigbangCost', bigbangCost);
+}
+function loadLimitedLandGame() {
+  energy = parseInt(localStorage.getItem('land_energy')) || 0;
+  clickPower = parseInt(localStorage.getItem('land_clickPower')) || 1;
+  upgradeCost = parseInt(localStorage.getItem('land_upgradeCost')) || 10;
+  generators = parseInt(localStorage.getItem('land_generators')) || 0;
+  generatorCost = parseInt(localStorage.getItem('land_generatorCost')) || 50;
+  fusionPlants = parseInt(localStorage.getItem('land_fusionPlants')) || 0;
+  fusionCost = parseInt(localStorage.getItem('land_fusionCost')) || 500;
+  dysonSpheres = parseInt(localStorage.getItem('land_dysonSpheres')) || 0;
+  dysonCost = parseInt(localStorage.getItem('land_dysonCost')) || 20000;
+  blackholes = parseInt(localStorage.getItem('land_blackholes')) || 0;
+  blackholeCost = parseInt(localStorage.getItem('land_blackholeCost')) || 750000;
+  bigbangs = parseInt(localStorage.getItem('land_bigbangs')) || 0;
+  bigbangCost = parseInt(localStorage.getItem('land_bigbangCost')) || 5000000;
+}
+function removeLimitedLandSave() {
+  [
+    'land_energy','land_clickPower','land_upgradeCost',
+    'land_generators','land_generatorCost',
+    'land_fusionPlants','land_fusionCost',
+    'land_dysonSpheres','land_dysonCost',
+    'land_blackholes','land_blackholeCost',
+    'land_bigbangs','land_bigbangCost'
+  ].forEach(key => localStorage.removeItem(key));
+}
 
   // ★★★ 핵심 게임 함수들 (업그레이드, 발전소 구매, UI 갱신 등) ★★★
   function gainEnergy() {
@@ -464,46 +555,66 @@ function updateTimerDisplay() {
       updateDisplay();
     }
   }
-  function buyGenerator() {
-    if (energy >= generatorCost) {
-      energy -= generatorCost;
-      generators++;
-      generatorCost = Math.floor(generatorCost * 1.2);
-      updateDisplay();
-    }
+function buyGenerator() {
+  if (inLimitedLandMode && generators >= 10) {
+    alert("이 모드에서는 태양광 발전기를 10개 이상 건설할 수 없습니다!");
+    return;
   }
-  function buyFusionPlant() {
-    if (energy >= fusionCost) {
-      energy -= fusionCost;
-      fusionPlants++;
-      fusionCost = Math.floor(fusionCost * 1.2);
-      updateDisplay();
-    }
+  if (energy >= generatorCost) {
+    energy -= generatorCost;
+    generators++;
+    generatorCost = Math.floor(generatorCost * 1.1);
+    updateDisplay();
   }
-  function buyDysonSphere() {
-    if (energy >= dysonCost) {
-      energy -= dysonCost;
-      dysonSpheres++;
-      dysonCost = Math.floor(dysonCost * 1.2);
-      updateDisplay();
-    }
+}
+function buyFusionPlant() {
+  if (inLimitedLandMode && fusionPlants >= 10) { // 🔥 추가
+    alert("이 모드에서는 핵융합 발전소를 10개 이상 건설할 수 없습니다!");
+    return;
   }
-  function buyBlackhole() {
-    if (energy >= blackholeCost) {
-      energy -= blackholeCost;
-      blackholes++;
-      blackholeCost = Math.floor(blackholeCost * 1.2);
-      updateDisplay();
-    }
+  if (energy >= fusionCost) {
+    energy -= fusionCost;
+    fusionPlants++;
+    fusionCost = Math.floor(fusionCost * 1.1);
+    updateDisplay();
   }
-  function buyBigBang() {
-    if (energy >= bigbangCost) {
-      energy -= bigbangCost;
-      bigbangs++;
-      bigbangCost = Math.floor(bigbangCost * 1.2);
-      updateDisplay();
-    }
+}
+function buyDysonSphere() {
+  if (inLimitedLandMode && dysonSpheres >= 10) { // 🔥 추가
+    alert("이 모드에서는 다이슨 구체를 10개 이상 건설할 수 없습니다!");
+    return;
   }
+  if (energy >= dysonCost) {
+    energy -= dysonCost;
+    dysonSpheres++;
+    dysonCost = Math.floor(dysonCost * 1.1);
+    updateDisplay();
+  }
+}
+ function buyBlackhole() {
+  if (inLimitedLandMode && blackholes >= 10) { // 🔥 추가
+    alert("이 모드에서는 블랙홀 에너지를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= blackholeCost) {
+    energy -= blackholeCost;
+    blackholes++;
+    blackholeCost = Math.floor(blackholeCost * 1.1);
+    updateDisplay();
+  }
+}
+ function buyBigBang() {
+  if (inLimitedLandMode && bigbangs >= 10) { // 🔥 추가
+    alert("이 모드에서는 빅뱅을 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= bigbangCost) {
+    energy -= bigbangCost;
+    bigbangs++;
+    bigbangCost = Math.floor(bigbangCost * 1.1);
+    updateDisplay();
+  }
+}
   function updateDisplay() {
     checkAchievements();
     if (gameEnded) return;
@@ -528,7 +639,7 @@ function updateTimerDisplay() {
     if (!a.unlocked && a.condition()) {
       a.unlocked = true;
       alert(`🎉 업적 달성: ${a.name}`);
-      prev = Date.now(); // ← 이 한 줄 추가!
+      prev = Date.now();
     }
   }
   renderAchievements();
@@ -656,19 +767,23 @@ function updateTimerDisplay() {
   }
 
   // ★★★ 게임 자동 진행(생산, 세이브) ★★★
-  setInterval(() => {
-    if (gameEnded) return;
-    if (inTimeAttack) {
+ setInterval(() => {
+  if (gameEnded) return;
+  if (inTimeAttack) {
     if (isPaused()) return;
-      energy += generators + fusionPlants * 10 + dysonSpheres * 250 + blackholes * 5000 + bigbangs * 100000;
-      updateDisplay();
-      saveTimeAttack();
-    } else {
-      energy += generators + fusionPlants * 10 + dysonSpheres * 250 + blackholes * 5000 + bigbangs * 100000;
-      updateDisplay();
-      saveGame();
-    }
-  }, 1000);
+    energy += generators + fusionPlants * 10 + dysonSpheres * 250 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveTimeAttack();
+  } else if (inLimitedLandMode) {
+    energy += generators + fusionPlants * 10 + dysonSpheres * 250 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveLimitedLandGame();
+  } else {
+    energy += generators + fusionPlants * 10 + dysonSpheres * 250 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveGame();
+  }
+}, 1000);
 function showNotice() {
   hideAllMenus();
   document.getElementById('noticePanel').style.display = 'block';
