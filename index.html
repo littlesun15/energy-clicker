@@ -125,9 +125,9 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 자잘자잘한 것들 수정,밸런스 패치(상승률 1.1배),새로운 모드 추가<br>
+    - 패치노트: 자잘자잘한 것들 수정,밸런스 패치(상승률 1.1배),새로운 모드 추가,버그 수정<br>
     - 이 게임에 추가하고 싶은거 있으시면 카톡이나 메세지로 보내주세요~<br><br>
-    -현재 버전: 1.1.6
+    -현재 버전: 1.1.7
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -307,6 +307,7 @@ function isPaused() {
   document.getElementById('timeAttackMenu').style.display = 'none';
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('noticePanel').style.display = 'none';
+  document.getElementById('landModeMenu').style.display = 'none';
 }
 
   function showChallengeMenu() {
