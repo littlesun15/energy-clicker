@@ -125,9 +125,10 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 자잘자잘한 것들 수정,밸런스 패치(상승률 1.1배),새로운 모드 추가,버그 수정<br>
+    - 패치노트: 1.1.7v 자잘자잘한 것들 수정,밸런스 패치(상승률 1.1배),새로운 모드 추가,버그 수정<br>
+    -1.1.8v 버그 수정<br>
     - 이 게임에 추가하고 싶은거 있으시면 카톡이나 메세지로 보내주세요~<br><br>
-    -현재 버전: 1.1.7
+    -현재 버전: 1.1.8
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -322,6 +323,7 @@ function isPaused() {
   document.getElementById('gameScreen').style.display = 'none';
   document.getElementById('timerBox').style.display = 'none';
   document.getElementById('achievementsPanel').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none'; // ★추가
   if (inTimeAttack) {
     inTimeAttack = false;
     clearInterval(timer);
@@ -355,23 +357,35 @@ function showLandModeMenu() {
   }
 
   // ★★★ 타임어택 모드 시작/이어하기 ★★★
-  function startTimeAttackGame() {
-    inTimeAttack = true;
-    gameEnded = false;
-    energy = 0; clickPower = 1; upgradeCost = 10;
-    generators = 0; generatorCost = 50;
-    fusionPlants = 0; fusionCost = 500;
-    dysonSpheres = 0; dysonCost = 20000;
-    blackholes = 0; blackholeCost = 750000;
-    bigbangs = 0; bigbangCost = 5000000;
-    timeLeft = 1500;
-    showGameScreen();
-    document.getElementById('timerBox').style.display = 'block';
-    document.getElementById('retryButton').style.display = 'none';
-    startTimeAttackTimer();
-    updateDisplay();
-  }
- function startLimitedLandGame() {
+ function startTimeAttackGame() {
+  inTimeAttack = true;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  dysonSpheres = 0; dysonCost = 20000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+  timeLeft = 1500;
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none'; // ★추가
+  startTimeAttackTimer();
+  updateDisplay();
+}
+function continueTimeAttackGame() {
+  inTimeAttack = true;
+  gameEnded = false;
+  loadTimeAttack();
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none'; // ★추가
+  startTimeAttackTimer();
+  updateDisplay();
+}
+function startLimitedLandGame() {
   inTimeAttack = false;
   inLimitedLandMode = true;
   gameEnded = false;
@@ -746,26 +760,28 @@ function buyDysonSphere() {
 
   // ★★★ 메인/기존 함수들과 연동: ★★★
   function startNewGame() {
-    localStorage.clear();
-    hideAllMenus();
-    document.getElementById('gameScreen').style.display = 'block';
-    document.getElementById('timerBox').style.display = 'none';
-    document.getElementById('retryButton').style.display = 'none';
-    inTimeAttack = false;
-    restartGame();
-    loadAchievements();
-    updateDisplay();
-  }
-  function continueGame() {
-    hideAllMenus();
-    document.getElementById('gameScreen').style.display = 'block';
-    inTimeAttack = false;
-    document.getElementById('timerBox').style.display = 'none';
-    document.getElementById('retryButton').style.display = 'none';
-    loadAchievements();
-    loadGame();
-    updateDisplay();
-  }
+  localStorage.clear();
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  inTimeAttack = false;
+  restartGame();
+  loadAchievements();
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'none'; // ★추가
+}
+ function continueGame() {
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  inTimeAttack = false;
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  loadAchievements();
+  loadGame();
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'none'; // ★추가
+}
 
   // ★★★ 게임 자동 진행(생산, 세이브) ★★★
  setInterval(() => {
