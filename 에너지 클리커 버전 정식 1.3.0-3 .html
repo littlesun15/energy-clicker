@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Energy Clicker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(to bottom, #0b0c2a, #1a1e3f, #292f5c);
+      color: #e0f7fa;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      overflow-x: hidden;
+    }
+    canvas#starCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    #timerBox {
+      position: fixed;
+      top: 20px;
+      right: 40px;
+      background: rgba(0,0,0,0.4);
+      color: #ffd600;
+      font-size: 2em;
+      font-weight: bold;
+      border-radius: 10px;
+      padding: 10px 25px;
+      z-index: 100;
+      letter-spacing: 1px;
+      display: none;
+      text-shadow: 0 0 8px #ffecb3;
+    }
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      color: #ffffff;
+      text-shadow: 0 0 10px #00bcd4;
+    }
+    #energy, #productionRate, #clickPower {
+      font-size: 1.3em;
+      font-weight: bold;
+      color: #aefeff;
+      text-shadow: 0 0 5px #26c6da;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      margin: 8px;
+      border-radius: 12px;
+      background: linear-gradient(to right, #0f9b8e, #00bcd4);
+      color: #ffffff;
+      border: 1px solid #00acc1;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    }
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.6);
+      background: linear-gradient(to right, #00acc1, #26c6da);
+    }
+    .panel {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 350px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(10px);
+    }
+    .panel h3 {
+      font-size: 1.3em;
+      margin-bottom: 10px;
+      color: #ffffff;
+      text-shadow: 0 0 5px #80deea;
+    }
+    #restartButton, #retryButton {
+      margin-top: 20px;
+      background: #ff1744;
+      border: 1px solid #f44336;
+    }
+    #restartButton:hover, #retryButton:hover {
+      background: #ff5252;
+      box-shadow: 0 0 10px rgba(255, 82, 82, 0.6);
+    }
+    /* 도전 모드 관련 스타일 */
+    #challengeMenu, #timeAttackMenu {
+      display: none;
+    }
+    #challengeList button {
+      margin: 20px;
+      font-size: 1.2em;
+      padding: 15px 35px;
+      border-radius: 18px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starCanvas"></canvas>
+
+  <!-- 메인 메뉴 -->
+  <div id="mainMenu">
+    <h1>⚡ Energy Clicker</h1>
+    <div id="mainDesc" style="margin: 15px 0 20px 0; font-size:1.1em; color:#b2ebf2; text-shadow:0 0 5px #26c6da;">
+      클릭해서 석유를 시추하고,<br>
+      다양한 발전소를 건설해 다른 행성을 테라포밍 하세요!<br><br>
+      제작자: 정이준
+    </div>
+    <button onclick="startNewGame()">🎮 새 게임 시작</button>
+    <button id="continueButton" onclick="continueGame()" style="display: none;">💾 저장된 게임 이어하기</button>
+    <button onclick="showChallengeMenu()">🚩 도전</button>
+    <button onclick="showNotice()">📢 공지사항</button>
+  </div>
+
+<div id="noticePanel" style="display:none;">
+  <h1>📢 공지사항</h1>
+  <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
+    - 패치노트: 1.1.8v 버그 수정<br>
+    -1.2.0v 리셋 버튼 삭제,타임어택 모드 일시정지가 스페이스바에서 버튼으로 바뀜,새로고침 해도 리셋 안됨<br>
+    -1.2.2v 타임어택 모드에서 일시정지 상태일 때 버튼이 안눌림,숫자에 쉼표가 생김<br>
+    -1.2.5v 새로운 발전소 추가, 다이슨 구체 가격과 초당 생산량 변경,좀 많이 지난 만우절 이벤트<br>
+    -1.2.6v 만우절 이벤트 종료,버그 수정,타임어택 모드를 깼을 때 얼마나 남기고 깼는지 표시 됌(참고로 배포는 안됌)<br>
+    -1.3.0v 하드코어 모드 추가(발전소 최대 10개 건설 제한, 가격 상승률 1.25배, 테라포밍(엔딩)1,500만)
+    -이번에는 뭘 바꿀까요?(추천좀 해주세요)<br><br>
+    -현재 버전: 1.3.0v
+  </div>
+  <button onclick="closeNotice()">닫기</button>
+</div>
+
+  <!-- 도전 모드 메뉴 -->
+  <div id="challengeMenu">
+    <h1>🚩 도전 모드 선택</h1>
+    <div id="challengeList">
+      <button onclick="showTimeAttackMenu()">⏱️ 타임어택 모드</button>
+      <button onclick="showLandModeMenu()">🌎 땅 부족 모드</button>
+      <button onclick="showHardcoreMenu()">💀 하드코어 모드</button>
+    </div>
+    <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
+  </div>
+<div id="hardcoreMenu" style="display:none;">
+  <h1>💀 하드코어 모드</h1>
+  <div style="margin:10px 0 30px 0; font-size:1.05em;">
+    발전소 가격 상승률 1.25배!<br>
+    각 발전소 최대 10개 제한!<br>
+    테라포밍에 1,500만 에너지 필요!<br>
+    정말로 하시겠어요?
+  </div>
+  <button onclick="startHardcoreGame()">💀 새 하드코어 시작</button>
+  <button onclick="backToMainMenu()">← 메인 화면으로</button>
+</div>
+
+<div id="landModeMenu" style="display:none;">
+  <h1>🌎 땅 부족 모드</h1>
+  <div style="margin:10px 0 30px 0; font-size:1.05em;">
+    각 발전소 최대 10개 제한!<br>언제든 저장/불러오기 가능
+  </div>
+  <button onclick="startLimitedLandGame()">🌱 새 땅 부족 모드 시작</button>
+  <button id="continueLandModeBtn" onclick="continueLimitedLandGame()" style="display:none;">💾 저장된 땅부족 이어하기</button>
+  <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
+</div>
+
+  <!-- 타임어택 모드 시작 메뉴 -->
+  <div id="timeAttackMenu">
+    <h1>⏱️ 타임어택 모드</h1>
+    <div style="margin:10px 0 30px 0; font-size:1.05em;">25분 안에 테라포밍을 성공하면 클리어!<br>진행 중 언제든 저장/불러오기 가능</div>
+    <button onclick="startTimeAttackGame()">⏰ 새 타임어택 시작</button>
+    <button id="continueTimeAttackBtn" onclick="continueTimeAttackGame()" style="display:none;">💾 저장된 타임어택 이어하기</button>
+    <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
+  </div>
+
+  <!-- 남은 시간 박스 -->
+  <div id="timerBox"></div>
+</div>
+
+  <!-- 게임 화면 (기존) -->
+  <div id="gameScreen" style="display: none;">
+    <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f23b7d3083.mp3" preload="auto"></audio>
+    <audio id="bgm" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_96e0576b8b.mp3" loop preload="auto"></audio>
+ <div id="landLimitNotice" style="display:none; color:#ffcc80; font-weight:bold; margin-bottom:10px;">
+  🌎 <b>땅 부족 모드</b>: 각 발전소 최대 10개까지만 건설 가능!
+</div>
+   <h1>⚡ Energy Clicker</h1>
+    <div id="energy">에너지: 0</div>
+    <div id="productionRate">초당 생산량: 0</div>
+    <div id="clickPower">클릭당 에너지: 1</div>
+<button id="saveGameBtn" onclick="saveGame()">💾 저장하기</button>
+<button id="pauseButton" onclick="togglePause()" style="display:none;">⏸️ 일시정지</button>
+<button id="gainEnergyBtn" onclick="gainEnergy()">⚡ 석유 시추하기</button>
+<button onclick="backToMainMenu()">🏠 메인 화면으로</button>
+<button id="showAchievementsBtn" onclick="showAchievements()">🏆 업적 보기</button>
+<div class="panel">
+  <h3>🔧 석유 시추 장비 강화</h3>
+  <button id="buyUpgradeBtn" onclick="buyUpgrade()">석유 시추 장비 강화 (+1) - <span id="upgradeCost">10</span> 에너지</button>
+</div>
+<div class="panel">
+  <h3>☀️ 태양광 발전기</h3>
+  <button id="buyGeneratorBtn" onclick="buyGenerator()">태양광 발전기 (+1/s) - <span id="generatorCost">50</span> 에너지</button>
+  <div>보유: <span id="generators">0</span></div>
+</div>
+<div class="panel">
+  <h3>🌞 핵융합 발전소</h3>
+  <button id="buyFusionPlantBtn" onclick="buyFusionPlant()">핵융합 발전소 (+10/s) - <span id="fusionCost">500</span> 에너지</button>
+  <div>보유: <span id="fusionPlants">0</span></div>
+</div>
+<div class="panel">
+  <h3>⚛️ 반물질 발전소</h3>
+  <button id="buyAntimatterPlantBtn" onclick="buyAntimatterPlant()">반물질 발전소 (+250/s) - <span id="antimatterCost">20,000</span> 에너지</button>
+  <div>보유: <span id="antimatterPlants">0</span></div>
+</div>
+<div class="panel">
+  <h3>🌀 다이슨 구체</h3>
+  <button id="buyDysonSphereBtn" onclick="buyDysonSphere()">다이슨 구체 (+1000/s) - <span id="dysonCost">100000</span> 에너지</button>
+  <div>보유: <span id="dysonSpheres">0</span></div>
+</div>
+<div class="panel">
+  <h3>🕳️ 블랙홀 에너지</h3>
+  <button id="buyBlackholeBtn" onclick="buyBlackhole()">블랙홀 에너지 (+5000/s) - <span id="blackholeCost">750000</span> 에너지</button>
+  <div>보유: <span id="blackholes">0</span></div>
+</div>
+<div class="panel">
+  <h3>💥 빅뱅</h3>
+  <button id="buyBigBangBtn" onclick="buyBigBang()">빅뱅 (+100000/s) - <span id="bigbangCost">5000000</span> 에너지</button>
+  <div>보유: <span id="bigbangs">0</span></div>
+</div>
+<div class="panel" id="terraformPanel">
+  <h3>🌍 테라포밍</h3>
+  <button id="terraformPlanetBtn" onclick="terraformPlanet()">테라포밍 (10000000 에너지 필요)</button>
+</div>
+    <div class="panel" id="achievementsPanel" style="display:none;">
+  <h3>🏆 업적</h3>
+  <div id="achievements"></div>
+  <button onclick="hideAchievements()">닫기</button>
+</div>
+    <button id="restartButton" onclick="restartGame()" style="display: none;">게임 다시 시작하기</button>
+    <button id="retryButton" onclick="retryTimeAttack()" style="display: none;">타임어택 다시 도전하기</button>
+  </div>
+  
+  <script>
+// ★★★ [1] 전역 변수/함수 추가 (맨 위) ★★★
+let timeAttackPaused = false;
+
+function formatNumber(n) {
+  return n.toLocaleString('en-US');
+}
+
+function isPaused() {
+  return inTimeAttack && (document.getElementById('achievementsPanel').style.display !== 'none' || timeAttackPaused);
+}
+  // ★★★ 별 애니메이션 ★★★
+  const canvas = document.getElementById('starCanvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  function initStars() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    stars = [];
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2,
+        speed: Math.random() * 0.5 + 0.2
+      });
+    }
+  }
+function setGameButtonsDisabled(disabled) {
+  const btnIds = [
+    'saveGameBtn',
+    'gainEnergyBtn',
+    'showAchievementsBtn',
+    'buyUpgradeBtn',
+    'buyGeneratorBtn',
+    'buyFusionPlantBtn',
+    'buyDysonSphereBtn',
+    'buyBlackholeBtn',
+    'buyBigBangBtn',
+    'terraformPlanetBtn'
+  ];
+  for (const id of btnIds) {
+    const el = document.getElementById(id);
+    if (el) el.disabled = disabled;
+  }
+  document.getElementById('pauseButton').disabled = !disabled;
+}
+  function drawStars() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'white';
+    for (let star of stars) {
+      ctx.beginPath();
+      ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  function updateStars() {
+    for (let star of stars) {
+      star.y += star.speed;
+      if (star.y > canvas.height) {
+        star.y = 0;
+        star.x = Math.random() * canvas.width;
+      }
+    }
+  }
+  function animate() {
+    drawStars();
+    updateStars();
+    requestAnimationFrame(animate);
+  }
+  window.addEventListener('resize', initStars);
+  window.addEventListener('load', () => {
+    initStars();
+    animate();
+  });
+
+  // ★★★ 게임 변수/모드 변수 ★★★
+  let gameEnded = false;
+  let energy = 0, clickPower = 1, upgradeCost = 10;
+  let generators = 0, generatorCost = 50;
+  let fusionPlants = 0, fusionCost = 500;
+  let antimatterPlants = 0, antimatterCost = 20000;
+  let dysonSpheres = 0, dysonCost = 100000;
+  let blackholes = 0, blackholeCost = 750000;
+  let bigbangs = 0, bigbangCost = 5000000;
+  let inTimeAttack = false; // 타임어택 모드 여부
+  let inLimitedLandMode = false;
+  let timeLeft = 1500; // 25분(초 단위)
+  let inHardcoreMode = false;
+  let timer = null;
+
+  // ★★★ 업적 시스템 ★★★
+  const achievements = {
+    firstClick: { name: "천리 길도 한 걸음", condition: () => energy >= 1, unlocked: false },
+    solarCollector: { name: "태양광 수집가", condition: () => generators >= 10, unlocked: false },
+    fusionMaster: { name: "핵융합 마스터", condition: () => fusionPlants >= 5, unlocked: false },
+    dysonOwner: { name: "2형 문명", condition: () => dysonSpheres >= 1, unlocked: false },
+    blackholeBoss: { name: "블랙홀 활용가", condition: () => blackholes >= 1, unlocked: false },
+    bigbangBreaker: { name: "빅뱅의 에너지", condition: () => bigbangs >= 1, unlocked: false },
+    terraformer: { name: "테라포밍 성공!", condition: () => gameEnded, unlocked: false },
+    sun: { name: "태양", condition: () => fusionPlants >= 10, unlocked: false }
+  };
+
+  // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
+ function hideAllMenus() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('challengeMenu').style.display = 'none';
+  document.getElementById('timeAttackMenu').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('noticePanel').style.display = 'none';
+  document.getElementById('landModeMenu').style.display = 'none';
+}
+
+  function showChallengeMenu() {
+    hideAllMenus();
+    document.getElementById('challengeMenu').style.display = 'block';
+    document.getElementById('landModeMenu').style.display = 'none';
+  }
+function showTimeAttackMenu() {
+  hideAllMenus();
+  document.getElementById('timeAttackMenu').style.display = 'block';
+  if (localStorage.getItem('ta_energy')) {
+    document.getElementById('continueTimeAttackBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('continueTimeAttackBtn').style.display = 'none';
+  }
+}
+ function backToMainMenu() {
+  hideAllMenus();
+  document.getElementById('pauseButton').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('achievementsPanel').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
+  inHardcoreMode = false;
+  if (inTimeAttack) {
+    inTimeAttack = false;
+    clearInterval(timer);
+    timer = null;
+    prev = null;
+    timeAttackPaused = false;
+  }
+  inLimitedLandMode = false;
+  if (localStorage.getItem('energy')) {
+    document.getElementById('continueButton').style.display = 'inline-block';
+  } else {
+    document.getElementById('continueButton').style.display = 'none';
+  }
+}
+function showLandModeMenu() {
+  hideAllMenus();
+  document.getElementById('landModeMenu').style.display = 'block';
+  if (localStorage.getItem('land_energy')) {
+    document.getElementById('continueLandModeBtn').style.display = 'inline-block';
+  } else {
+    document.getElementById('continueLandModeBtn').style.display = 'none';
+  }
+}
+ function showGameScreen() {
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('landLimitNotice').style.display = 'none';
+}
+function showHardcoreMenu() {
+  hideAllMenus();
+  document.getElementById('hardcoreMenu').style.display = 'block';
+}
+function startHardcoreGame() {
+  inHardcoreMode = true;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  antimatterPlants = 0; antimatterCost = 20000;
+  dysonSpheres = 0; dysonCost = 100000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+
+  document.getElementById('hardcoreMenu').style.display = 'none';
+
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+
+  document.getElementById('landLimitNotice').innerHTML =
+    '💀 <b>하드코어 모드</b>: 각 발전소 최대 10개까지만 건설 가능!, 테라포밍 에너지 15,000,000!, 발전소 가격 상승률 1.25배!';
+
+  document.getElementById('landLimitNotice').style.display = 'block';
+  updateDisplay();
+}
+
+  // ★★★ 타임어택 모드 시작/이어하기 ★★★
+ function startTimeAttackGame() {
+  inTimeAttack = true;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  antimatterPlants = 0; antimatterCost = 20000;
+  dysonSpheres = 0; dysonCost = 100000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+  timeLeft = 1500;
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
+  startTimeAttackTimer();
+  updateDisplay();
+  document.getElementById('pauseButton').style.display = 'inline-block';
+  document.getElementById('pauseButton').textContent = '⏸️ 일시정지';
+}
+function continueTimeAttackGame() {
+  inTimeAttack = true;
+  gameEnded = false;
+  loadTimeAttack();
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
+  startTimeAttackTimer();
+  updateDisplay();
+  document.getElementById('pauseButton').style.display = 'inline-block';
+  document.getElementById('pauseButton').textContent = '⏸️ 일시정지';
+}
+function startLimitedLandGame() {
+  inTimeAttack = false;
+  inLimitedLandMode = true;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  antimatterPlants = 0; antimatterCost = 20000;
+  dysonSpheres = 0; dysonCost = 100000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+
+  document.getElementById('landLimitNotice').innerHTML =
+    '🌎 <b>땅 부족 모드</b>: 각 발전소 최대 10개까지만 건설 가능!';
+
+  document.getElementById('landLimitNotice').style.display = 'block';
+  updateDisplay();
+}
+function continueLimitedLandGame() {
+  inTimeAttack = false;
+  inLimitedLandMode = true;
+  gameEnded = false;
+  loadLimitedLandGame();
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'block';
+}
+ function continueTimeAttackGame() {
+    inTimeAttack = true;
+    gameEnded = false;
+    loadTimeAttack();
+    showGameScreen();
+    document.getElementById('timerBox').style.display = 'block';
+    document.getElementById('retryButton').style.display = 'none';
+    startTimeAttackTimer();
+    updateDisplay();
+  }
+  function retryTimeAttack() {
+    startTimeAttackGame();
+  }
+  function endTimeAttack(success) {
+  clearInterval(timer);
+  document.getElementById('timerBox').style.display = 'block';
+  document.getElementById('pauseButton').style.display = 'none';
+  if (success) {
+    let t = Math.max(0, timeLeft);
+    let min = Math.floor(t / 60);
+    let sec = Math.floor(t % 60);
+    let ms = Math.floor((t - Math.floor(t)) * 100);
+    let msg = `🎉 클리어! 테라포밍 성공!\n남은 시간: ${min < 10 ? '0' + min : min}:${sec < 10 ? '0' + sec : sec}.${ms < 10 ? '0' + ms : ms}`;
+    document.getElementById('timerBox').textContent = "🎉 클리어! 테라포밍 성공!";
+    setTimeout(() => { alert(msg); }, 200);
+  } else {
+    document.getElementById('timerBox').textContent = "⏰ 실패! 시간이 초과됐습니다.";
+    setTimeout(() => { alert("⏰ 실패! 시간이 초과됐습니다."); }, 200);
+    document.getElementById('retryButton').style.display = 'inline-block';
+  }
+  gameEnded = true;
+  removeTimeAttackSave();
+}
+
+  let prev = null;
+  function startTimeAttackTimer() {
+  prev = Date.now();
+  if (timer) clearInterval(timer);
+  timer = setInterval(() => {
+    if (gameEnded) return;
+    if (isPaused()) return;
+    let now = Date.now();
+    let dt = (now - prev) / 1000;
+    prev = now;
+    timeLeft -= dt;
+    if (timeLeft < 0) timeLeft = 0;
+    updateTimerDisplay();
+    if (timeLeft === 0) endTimeAttack(false);
+  }, 10);
+  updateTimerDisplay();
+}
+function updateTimerDisplay() {
+    if (!inTimeAttack) {
+      document.getElementById('timerBox').style.display = 'none';
+      return;
+    }
+    let t = Math.max(0, timeLeft);
+    let min = Math.floor(t / 60);
+    let sec = Math.floor(t % 60);
+    let ms = Math.floor((t - Math.floor(t)) * 100);
+    let txt =
+      (min < 10 ? '0' + min : min) + ':' +
+      (sec < 10 ? '0' + sec : sec) + '.' +
+      (ms < 10 ? '0' + ms : ms);
+    document.getElementById('timerBox').textContent = txt;
+  }
+  function saveTimeAttack() {
+    localStorage.setItem('ta_energy', energy);
+    localStorage.setItem('ta_clickPower', clickPower);
+    localStorage.setItem('ta_upgradeCost', upgradeCost);
+    localStorage.setItem('ta_generators', generators);
+    localStorage.setItem('ta_generatorCost', generatorCost);
+    localStorage.setItem('ta_fusionPlants', fusionPlants);
+    localStorage.setItem('ta_fusionCost', fusionCost);
+    localStorage.setItem('antimatterPlants', antimatterPlants);
+    localStorage.setItem('antimatterCost', antimatterCost);
+    localStorage.setItem('ta_dysonSpheres', dysonSpheres);
+    localStorage.setItem('ta_dysonCost', dysonCost);
+    localStorage.setItem('ta_blackholes', blackholes);
+    localStorage.setItem('ta_blackholeCost', blackholeCost);
+    localStorage.setItem('ta_bigbangs', bigbangs);
+    localStorage.setItem('ta_bigbangCost', bigbangCost);
+    localStorage.setItem('ta_timeLeft', timeLeft);
+  }
+  function loadTimeAttack() {
+    energy = parseInt(localStorage.getItem('ta_energy')) || 0;
+    clickPower = parseInt(localStorage.getItem('ta_clickPower')) || 1;
+    upgradeCost = parseInt(localStorage.getItem('ta_upgradeCost')) || 10;
+    generators = parseInt(localStorage.getItem('ta_generators')) || 0;
+    generatorCost = parseInt(localStorage.getItem('ta_generatorCost')) || 50;
+    fusionPlants = parseInt(localStorage.getItem('ta_fusionPlants')) || 0;
+    fusionCost = parseInt(localStorage.getItem('ta_fusionCost')) || 500;
+    antimatterPlants = parseInt(localStorage.getItem('antimatterPlants')) || 0;
+    antimatterCost = parseInt(localStorage.getItem('antimatterCost')) || 20000;
+    dysonSpheres = parseInt(localStorage.getItem('ta_dysonSpheres')) || 0;
+    dysonCost = parseInt(localStorage.getItem('ta_dysonCost')) || 100000;
+    blackholes = parseInt(localStorage.getItem('ta_blackholes')) || 0;
+    blackholeCost = parseInt(localStorage.getItem('ta_blackholeCost')) || 750000;
+    bigbangs = parseInt(localStorage.getItem('ta_bigbangs')) || 0;
+    bigbangCost = parseInt(localStorage.getItem('ta_bigbangCost')) || 5000000;
+    timeLeft = parseFloat(localStorage.getItem('ta_timeLeft')) || 1500;
+  }
+  function removeTimeAttackSave() {
+    [
+      'ta_energy','ta_clickPower','ta_upgradeCost',
+      'ta_generators','ta_generatorCost',
+      'ta_fusionPlants','ta_fusionCost',
+      'ta_dysonSpheres','ta_dysonCost',
+      'ta_blackholes','ta_blackholeCost',
+      'ta_bigbangs','ta_bigbangCost',
+      'ta_timeLeft'
+    ].forEach(key => localStorage.removeItem(key));
+  }
+function saveLimitedLandGame() {
+  localStorage.setItem('land_energy', energy);
+  localStorage.setItem('land_clickPower', clickPower);
+  localStorage.setItem('land_upgradeCost', upgradeCost);
+  localStorage.setItem('land_generators', generators);
+  localStorage.setItem('land_generatorCost', generatorCost);
+  localStorage.setItem('land_fusionPlants', fusionPlants);
+  localStorage.setItem('land_fusionCost', fusionCost);
+  localStorage.setItem('land_antimatterPlants', antimatterPlants);
+  localStorage.setItem('land_antimatterCost', antimatterCost);
+  localStorage.setItem('land_dysonSpheres', dysonSpheres);
+  localStorage.setItem('land_dysonCost', dysonCost);
+  localStorage.setItem('land_blackholes', blackholes);
+  localStorage.setItem('land_blackholeCost', blackholeCost);
+  localStorage.setItem('land_bigbangs', bigbangs);
+  localStorage.setItem('land_bigbangCost', bigbangCost);
+}
+function loadLimitedLandGame() {
+  energy = parseInt(localStorage.getItem('land_energy')) || 0;
+  clickPower = parseInt(localStorage.getItem('land_clickPower')) || 1;
+  upgradeCost = parseInt(localStorage.getItem('land_upgradeCost')) || 10;
+  generators = parseInt(localStorage.getItem('land_generators')) || 0;
+  generatorCost = parseInt(localStorage.getItem('land_generatorCost')) || 50;
+  fusionPlants = parseInt(localStorage.getItem('land_fusionPlants')) || 0;
+  fusionCost = parseInt(localStorage.getItem('land_fusionCost')) || 500;
+  antimatterPlants = parseInt(localStorage.getItem('land_antimatterPlants')) || 0;
+  antimatterCost = parseInt(localStorage.getItem('land_antimatterCost')) || 20000;
+  dysonSpheres = parseInt(localStorage.getItem('land_dysonSpheres')) || 0;
+  dysonCost = parseInt(localStorage.getItem('land_dysonCost')) || 100000;
+  blackholes = parseInt(localStorage.getItem('land_blackholes')) || 0;
+  blackholeCost = parseInt(localStorage.getItem('land_blackholeCost')) || 750000;
+  bigbangs = parseInt(localStorage.getItem('land_bigbangs')) || 0;
+  bigbangCost = parseInt(localStorage.getItem('land_bigbangCost')) || 5000000;
+}
+function removeLimitedLandSave() {
+  [
+    'land_energy','land_clickPower','land_upgradeCost',
+    'land_generators','land_generatorCost',
+    'land_fusionPlants','land_fusionCost',
+    'land_antimatterPlants','land_antimatterCost',
+    'land_dysonSpheres','land_dysonCost',
+    'land_blackholes','land_blackholeCost',
+    'land_bigbangs','land_bigbangCost'
+  ].forEach(key => localStorage.removeItem(key));
+}
+
+  // ★★★ 핵심 게임 함수들 (업그레이드, 발전소 구매, UI 갱신 등) ★★★
+  function gainEnergy() {
+    document.getElementById('clickSound').play();
+    energy += clickPower;
+    updateDisplay();
+  }
+  function buyUpgrade() {
+    if (energy >= upgradeCost) {
+      energy -= upgradeCost;
+      clickPower++;
+     upgradeCost = Math.floor(upgradeCost * (inHardcoreMode ? 1.25 : 1.1));
+      updateDisplay();
+    }
+  }
+function buyGenerator() {
+  if ((inLimitedLandMode || inHardcoreMode) && generators >= 10) {
+    alert("이 모드에서는 태양광 발전기를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= generatorCost) {
+    energy -= generatorCost;
+    generators++;
+    generatorCost = Math.floor(generatorCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+
+function buyFusionPlant() {
+  if ((inLimitedLandMode || inHardcoreMode) && fusionPlants >= 10) {
+    alert("이 모드에서는 핵융합 발전소를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= fusionCost) {
+    energy -= fusionCost;
+    fusionPlants++;
+    fusionCost = Math.floor(fusionCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+
+function buyAntimatterPlant() {
+  if ((inLimitedLandMode || inHardcoreMode) && antimatterPlants >= 10) {
+    alert("이 모드에서는 반물질 발전소를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= antimatterCost) {
+    energy -= antimatterCost;
+    antimatterPlants++;
+    antimatterCost = Math.floor(antimatterCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+
+function buyDysonSphere() {
+  if ((inLimitedLandMode || inHardcoreMode) && dysonSpheres >= 10) {
+    alert("이 모드에서는 다이슨 구체를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= dysonCost) {
+    energy -= dysonCost;
+    dysonSpheres++;
+    dysonCost = Math.floor(dysonCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+
+function buyBlackhole() {
+  if ((inLimitedLandMode || inHardcoreMode) && blackholes >= 10) {
+    alert("이 모드에서는 블랙홀 에너지를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= blackholeCost) {
+    energy -= blackholeCost;
+    blackholes++;
+    blackholeCost = Math.floor(blackholeCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+
+function buyBigBang() {
+  if ((inLimitedLandMode || inHardcoreMode) && bigbangs >= 10) {
+    alert("이 모드에서는 빅뱅을 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= bigbangCost) {
+    energy -= bigbangCost;
+    bigbangs++;
+    bigbangCost = Math.floor(bigbangCost * (inHardcoreMode ? 1.25 : 1.1));
+    updateDisplay();
+  }
+}
+function updateDisplay() {
+  checkAchievements();
+  if (gameEnded) return;
+  document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
+  document.getElementById('clickPower').textContent = `클릭당 에너지: ${formatNumber(clickPower)}`;
+  document.getElementById('upgradeCost').textContent = formatNumber(upgradeCost);
+  document.getElementById('generators').textContent = formatNumber(generators);
+  document.getElementById('generatorCost').textContent = formatNumber(generatorCost);
+  document.getElementById('fusionCost').textContent = formatNumber(fusionCost);
+  document.getElementById('fusionPlants').textContent = formatNumber(fusionPlants);
+
+  document.getElementById('antimatterCost').textContent = formatNumber(antimatterCost);
+  document.getElementById('antimatterPlants').textContent = formatNumber(antimatterPlants);
+  document.getElementById('buyAntimatterPlantBtn').innerHTML =
+    `반물질 발전소 (+${formatNumber(250)}/s) - <span id="antimatterCost">${formatNumber(antimatterCost)}</span> 에너지`;
+
+  document.getElementById('dysonCost').textContent = formatNumber(dysonCost);
+  document.getElementById('dysonSpheres').textContent = formatNumber(dysonSpheres);
+  document.getElementById('buyDysonSphereBtn').innerHTML =
+  `다이슨 구체 (+${formatNumber(1000)}/s) - <span id="dysonCost">${formatNumber(dysonCost)}</span> 에너지`;
+
+  document.getElementById('blackholeCost').textContent = formatNumber(blackholeCost);
+  document.getElementById('blackholes').textContent = formatNumber(blackholes);
+  document.getElementById('bigbangCost').textContent = formatNumber(bigbangCost);
+  document.getElementById('bigbangs').textContent = formatNumber(bigbangs);
+
+  document.getElementById('productionRate').textContent =
+    `초당 생산량: ${formatNumber(
+      generators +
+      fusionPlants * 10 +
+      antimatterPlants * 250 +
+      dysonSpheres * 1000 +
+      blackholes * 5000 +
+      bigbangs * 100000
+    )}`;
+
+  document.getElementById('buyUpgradeBtn').innerHTML =
+    `석유 시추 장비 강화 (+${formatNumber(1)}) - <span id="upgradeCost">${formatNumber(upgradeCost)}</span> 에너지`;
+  document.getElementById('buyGeneratorBtn').innerHTML =
+    `태양광 발전기 (+${formatNumber(1)}/s) - <span id="generatorCost">${formatNumber(generatorCost)}</span> 에너지`;
+  document.getElementById('buyFusionPlantBtn').innerHTML =
+    `핵융합 발전소 (+${formatNumber(10)}/s) - <span id="fusionCost">${formatNumber(fusionCost)}</span> 에너지`;
+  document.getElementById('buyBlackholeBtn').innerHTML =
+    `블랙홀 에너지 (+${formatNumber(5000)}/s) - <span id="blackholeCost">${formatNumber(blackholeCost)}</span> 에너지`;
+  document.getElementById('buyBigBangBtn').innerHTML =
+    `빅뱅 (+${formatNumber(100000)}/s) - <span id="bigbangCost">${formatNumber(bigbangCost)}</span> 에너지`;
+
+  document.querySelector('#terraformPanel button').textContent =
+  `테라포밍 (${formatNumber(inHardcoreMode ? 15000000 : 10000000)} 에너지 필요)`;
+}
+  function checkAchievements() {
+  for (let key in achievements) {
+    const a = achievements[key];
+    if (!a.unlocked && a.condition()) {
+      a.unlocked = true;
+      alert(`🎉 업적 달성: ${a.name}`);
+      prev = Date.now();
+    }
+  }
+  renderAchievements();
+}
+  function renderAchievements() {
+    const panel = document.getElementById('achievements');
+    panel.innerHTML = '';
+    for (let key in achievements) {
+      if (achievements[key].unlocked) {
+        const div = document.createElement('div');
+        div.textContent = achievements[key].name;
+        div.style.color = 'gold';
+        div.style.margin = '5px';
+        panel.appendChild(div);
+      }
+    }
+  }
+  function terraformPlanet() {
+  let required = inHardcoreMode ? 15000000 : 10000000;
+  if (energy >= required) {
+    if (inTimeAttack) {
+      endTimeAttack(true);
+    } else {
+      gameEnded = true;
+      alert("🎉 테라포밍 성공! 게임이 끝났습니다!");
+      document.getElementById('restartButton').style.display = 'inline-block';
+    }
+  } else {
+    alert(`에너지가 부족합니다! (${formatNumber(required)} 필요)`);
+  }
+}
+  function restartGame() {
+    energy = 0;
+    clickPower = 1;
+    upgradeCost = 10;
+    generators = 0;
+    generatorCost = 50;
+    fusionPlants = 0;
+    fusionCost = 500;
+    antimatterPlants = 0;
+    antimatterCost = 20000;
+    dysonSpheres = 0;
+    dysonCost = 100000;
+    blackholes = 0;
+    blackholeCost = 750000;
+    bigbangs = 0;
+    bigbangCost = 5000000;
+    gameEnded = false;
+    document.getElementById('restartButton').style.display = 'none';
+    updateDisplay();
+  }
+
+  // ★★★ 세이브/로드 함수 ★★★
+  function saveGame() {
+    if (inTimeAttack) {
+      saveTimeAttack();
+      alert('타임어택 저장 완료!');
+      return;
+    }
+    localStorage.setItem('energy', energy);
+    localStorage.setItem('clickPower', clickPower);
+    localStorage.setItem('upgradeCost', upgradeCost);
+    localStorage.setItem('generators', generators);
+    localStorage.setItem('generatorCost', generatorCost);
+    localStorage.setItem('fusionPlants', fusionPlants);
+    localStorage.setItem('fusionCost', fusionCost);
+    localStorage.setItem('antimatterPlants', antimatterPlants);
+    localStorage.setItem('antimatterCost', antimatterCost);
+    localStorage.setItem('dysonSpheres', dysonSpheres);
+    localStorage.setItem('dysonCost', dysonCost);
+    localStorage.setItem('blackholes', blackholes);
+    localStorage.setItem('blackholeCost', blackholeCost);
+    localStorage.setItem('bigbangs', bigbangs);
+    localStorage.setItem('bigbangCost', bigbangCost);
+    localStorage.setItem('achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked]))));
+  }
+  function loadGame() {
+    energy = parseInt(localStorage.getItem('energy')) || 0;
+    clickPower = parseInt(localStorage.getItem('clickPower')) || 1;
+    upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
+    generators = parseInt(localStorage.getItem('generators')) || 0;
+    generatorCost = parseInt(localStorage.getItem('generatorCost')) || 50;
+    fusionPlants = parseInt(localStorage.getItem('fusionPlants')) || 0;
+    fusionCost = parseInt(localStorage.getItem('fusionCost')) || 500;
+    antimatterPlants = parseInt(localStorage.getItem('antimatterPlants')) || 0;
+    antimatterCost = parseInt(localStorage.getItem('antimatterCost')) || 20000;
+    dysonSpheres = parseInt(localStorage.getItem('dysonSpheres')) || 0;
+    dysonCost = parseInt(localStorage.getItem('dysonCost')) || 100000;
+    blackholes = parseInt(localStorage.getItem('blackholes')) || 0;
+    blackholeCost = parseInt(localStorage.getItem('blackholeCost')) || 750000;
+    bigbangs = parseInt(localStorage.getItem('bigbangs')) || 0;
+    bigbangCost = parseInt(localStorage.getItem('bigbangCost')) || 5000000;
+  }
+  function loadAchievements() {
+    const saved = JSON.parse(localStorage.getItem('achievements') || '{}');
+    for (let key in saved) {
+      if (achievements[key]) achievements[key].unlocked = saved[key];
+    }
+    renderAchievements();
+   }
+
+  // ★★★ 메인/기존 함수들과 연동: ★★★
+  function startNewGame() {
+  localStorage.clear();
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  inTimeAttack = false;
+  restartGame();
+  loadAchievements();
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'none';
+}
+ function continueGame() {
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  inTimeAttack = false;
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  loadAchievements();
+  loadGame();
+  updateDisplay();
+  document.getElementById('landLimitNotice').style.display = 'none';
+}
+
+  // ★★★ 게임 자동 진행(생산, 세이브) ★★★
+ setInterval(() => {
+  if (gameEnded) return;
+  if (inTimeAttack) {
+    if (isPaused()) return;
+    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveTimeAttack();
+  } else if (inLimitedLandMode) {
+    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveLimitedLandGame();
+  } else {
+    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+    updateDisplay();
+    saveGame();
+  }
+}, 1000);
+function showNotice() {
+  hideAllMenus();
+  document.getElementById('noticePanel').style.display = 'block';
+}
+function closeNotice() {
+  document.getElementById('noticePanel').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+}
+  // ★★★ 타임어택/일반모드 버튼 표시 처리 ★★★
+function togglePause() {
+  if (inTimeAttack) {
+    timeAttackPaused = !timeAttackPaused;
+    if (timeAttackPaused) {
+      document.getElementById('timerBox').textContent = '⏸️ 일시정지 (버튼으로 재개)';
+      document.getElementById('pauseButton').textContent = '▶️ 재개';
+      setGameButtonsDisabled(true); // 모두 비활성화, pauseButton만 활성
+    } else {
+      prev = Date.now();
+      updateTimerDisplay();
+      document.getElementById('pauseButton').textContent = '⏸️ 일시정지';
+      setGameButtonsDisabled(false);
+    }
+  }
+}
+window.onload = () => {
+  if (localStorage.getItem('energy')) {
+    document.getElementById('continueButton').style.display = 'inline-block';
+  } else {
+    document.getElementById('continueButton').style.display = 'none';
+  }
+  document.getElementById('mainMenu').style.display = 'block';
+  if (localStorage.getItem('ta_energy')) {
+    document.getElementById('continueTimeAttackBtn').style.display = 'inline-block';
+  }
+  document.getElementById('restartButton').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  document.body.addEventListener('click', () => {
+    const bgm = document.getElementById('bgm');
+    if (bgm.paused) bgm.play();
+  }, { once: true });
+};
+function showAchievements() {
+  document.getElementById('achievementsPanel').style.display = 'block';
+}
+
+function hideAchievements() {
+  document.getElementById('achievementsPanel').style.display = 'none';
+  prev = Date.now();
+}
+window.addEventListener('keydown', (e) => {
+  if (inTimeAttack && document.getElementById('gameScreen').style.display === 'block') {
+    if (e.code === 'Space') {
+      timeAttackPaused = !timeAttackPaused;
+      if (timeAttackPaused) {
+        document.getElementById('timerBox').textContent = '⏸️ 일시정지 (스페이스바로 재개)';
+      } else {
+        prev = Date.now();
+        updateTimerDisplay();
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
