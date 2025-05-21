@@ -755,6 +755,7 @@ function buyBigBang() {
   }
 }
 function updateDisplay() {
+  document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
   checkAchievements();
   if (gameEnded) return;
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
@@ -865,6 +866,9 @@ function updateDisplay() {
 
   // ★★★ 세이브/로드 함수 ★★★
   function saveGame() {
+   localStorage.setItem('energy', energy);
+   localStorage.setItem('clickPower', clickPower);
+   localStorage.setItem('upgradeCost', upgradeCost);
     if (inTimeAttack) {
       saveTimeAttack();
       alert('타임어택 저장 완료!');
@@ -903,6 +907,12 @@ function updateDisplay() {
     blackholeCost = parseInt(localStorage.getItem('blackholeCost')) || 750000;
     bigbangs = parseInt(localStorage.getItem('bigbangs')) || 0;
     bigbangCost = parseInt(localStorage.getItem('bigbangCost')) || 5000000;
+alert('loadGame called! energy=' + energy);
+console.log(
+    'loadGame() called!',
+    'energy:', localStorage.getItem('energy'),
+    'clickPower:', localStorage.getItem('clickPower')
+  );
   }
   function loadAchievements() {
     const saved = JSON.parse(localStorage.getItem('achievements') || '{}');
