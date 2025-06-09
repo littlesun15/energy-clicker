@@ -120,21 +120,41 @@
     <button id="continueButton" onclick="continueGame()" style="display: none;">💾 저장된 게임 이어하기</button>
     <button onclick="showChallengeMenu()">🚩 도전</button>
     <button onclick="showNotice()">📢 공지사항</button>
+    <button onclick="showSettings()">⚙️ 설정</button>
   </div>
 
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 1.2.5v 새로운 발전소 추가, 다이슨 구체 가격과 초당 생산량 변경,좀 많이 지난 만우절 이벤트<br>
-    -1.2.6v 만우절 이벤트 종료,버그 수정,타임어택 모드를 깼을 때 얼마나 남기고 깼는지 표시 됌(참고로 배포는 안됌)<br>
-    -1.3.0v 하드코어 모드 추가(발전소 최대 10개 건설 제한, 가격 상승률 1.25배, 테라포밍(엔딩)1,500만)<br>
+    - 패치노트: 1.3.0v 하드코어 모드 추가(발전소 최대 10개 건설 제한, 가격 상승률 1.25배, 테라포밍(엔딩)1,500만)<br>
     -1.4.0v 가끔씩 랜덤 이벤트, 배경 변화(에너지 양에 따라서 변화)<br>
     -1.4.1v 행성 크기 변경<br>
+    -1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
     -업데이트 추천 방법은? 카톡이나 메세지로!<br>
     -당신은 공지사항을 자주 보시는 사람! 보셨다면 카톡이나 메세지로 보내 주세요~<br><br>
-    -현재 버전: 1.4.1v
+    -현재 버전: 1.4.5v
   </div>
   <button onclick="closeNotice()">닫기</button>
+</div>
+
+ <div id="settingsPanel" style="display:none;">
+  <h1 id="settingsTitle">⚙️ 설정</h1>
+  <label>
+    <input type="checkbox" id="bgToggle" checked>
+    <span id="bgLabel">배경 표시</span>
+  </label>
+  <br><br>
+  <label>
+    <span id="langLabel">언어</span>:
+    <select id="langSelect">
+      <option value="ko">한국어</option>
+      <option value="en">English</option>
+    </select>
+  </label>
+  <br><br>
+  <button onclick="resetGameWithConfirm()" id="resetBtn">게임 리셋</button>
+  <br><br>
+  <button onclick="closeSettings()" id="closeSettingsBtn">닫기</button>
 </div>
 
   <!-- 도전 모드 메뉴 -->
@@ -153,7 +173,7 @@
     발전소 가격 상승률 1.25배!<br>
     각 발전소 최대 10개 제한!<br>
     테라포밍에 1,500만 에너지 필요!<br>
-    정말로 하시겠어요?
+    가능한가요?
   </div>
   <button onclick="startHardcoreGame()">💀 새 하드코어 시작</button>
   <button onclick="backToMainMenu()">← 메인 화면으로</button>
@@ -246,6 +266,45 @@
   </div>
   
   <script>
+ const LANG = {
+  ko: {
+    settings: "⚙️ 설정",
+    bgLabel: "배경 표시",
+    langLabel: "언어",
+    reset: "게임 리셋",
+    close: "닫기",
+    resetConfirm: "정말로 리셋 하시겠습니까?",
+    ach_firstClick: "천리 길도 한 걸음",
+    ach_solarCollector: "태양광 수집가",
+    ach_fusionMaster: "핵융합 마스터",
+    ach_dysonOwner: "2형 문명",
+    ach_blackholeBoss: "블랙홀 활용가",
+    ach_bigbangBreaker: "빅뱅의 에너지",
+    ach_terraformer: "테라포밍 성공!",
+    ach_sun: "태양"
+  },
+  en: {
+    settings: "⚙️ Settings",
+    bgLabel: "Show Background",
+    langLabel: "Language",
+    reset: "Reset Game",
+    close: "Close",
+    resetConfirm: "Are you sure you want to reset the game?",
+    ach_firstClick: "A Journey of a Thousand Miles",
+    ach_solarCollector: "Solar Collector",
+    ach_fusionMaster: "Fusion Master",
+    ach_dysonOwner: "Type II Civilization",
+    ach_blackholeBoss: "Black Hole User",
+    ach_bigbangBreaker: "Energy of Big Bang",
+    ach_terraformer: "Terraforming Success!",
+    ach_sun: "Sun"
+  }
+};
+function getT(key) {
+  const lang = localStorage.getItem('lang') || 'ko';
+  return LANG[lang][key] || key;
+}
+
 // ★★★ [1] 전역 변수/함수 추가 (맨 위) ★★★
 let timeAttackPaused = false;
 
@@ -449,7 +508,13 @@ function drawPlanet3D(energy) {
 }
 
 function draw() {
-  // 우주
+  if (window._hideBG) { // ⭐ 여기에 바로 넣기!
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+
+  // 기존 배경(우주/행성)
   ctx.fillStyle = "#000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   // 별
@@ -482,17 +547,25 @@ window.addEventListener('load', () => {
   initStars();
   animate();
 });
+function applyLanguage() {
+  document.getElementById('settingsTitle').textContent = getT('settings');
+  document.getElementById('bgLabel').textContent = getT('bgLabel');
+  document.getElementById('langLabel').textContent = getT('langLabel');
+  document.getElementById('resetBtn').textContent = getT('reset');
+  document.getElementById('closeSettingsBtn').textContent = getT('close');
+  renderAchievements();
+}
   // ★★★ 업적 시스템 ★★★
   const achievements = {
-    firstClick: { name: "천리 길도 한 걸음", condition: () => energy >= 1, unlocked: false },
-    solarCollector: { name: "태양광 수집가", condition: () => generators >= 10, unlocked: false },
-    fusionMaster: { name: "핵융합 마스터", condition: () => fusionPlants >= 5, unlocked: false },
-    dysonOwner: { name: "2형 문명", condition: () => dysonSpheres >= 1, unlocked: false },
-    blackholeBoss: { name: "블랙홀 활용가", condition: () => blackholes >= 1, unlocked: false },
-    bigbangBreaker: { name: "빅뱅의 에너지", condition: () => bigbangs >= 1, unlocked: false },
-    terraformer: { name: "테라포밍 성공!", condition: () => gameEnded, unlocked: false },
-    sun: { name: "태양", condition: () => fusionPlants >= 10, unlocked: false }
-  };
+  firstClick: { name: () => getT('ach_firstClick'), condition: () => energy >= 1, unlocked: false },
+  solarCollector: { name: () => getT('ach_solarCollector'), condition: () => generators >= 10, unlocked: false },
+  fusionMaster: { name: () => getT('ach_fusionMaster'), condition: () => fusionPlants >= 5, unlocked: false },
+  dysonOwner: { name: () => getT('ach_dysonOwner'), condition: () => dysonSpheres >= 1, unlocked: false },
+  blackholeBoss: { name: () => getT('ach_blackholeBoss'), condition: () => blackholes >= 1, unlocked: false },
+  bigbangBreaker: { name: () => getT('ach_bigbangBreaker'), condition: () => bigbangs >= 1, unlocked: false },
+  terraformer: { name: () => getT('ach_terraformer'), condition: () => gameEnded, unlocked: false },
+  sun: { name: () => getT('ach_sun'), condition: () => fusionPlants >= 10, unlocked: false }
+};
 
   // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
  function hideAllMenus() {
@@ -1006,7 +1079,7 @@ function triggerAsteroidEvent() {
     for (let key in achievements) {
       if (achievements[key].unlocked) {
         const div = document.createElement('div');
-        div.textContent = achievements[key].name;
+        div.textContent = achievements[key].name();
         div.style.color = 'gold';
         div.style.margin = '5px';
         panel.appendChild(div);
@@ -1212,6 +1285,71 @@ window.addEventListener('keydown', (e) => {
     }
   }
 });
+// === [1] 설정창 열기/닫기 ===
+function showSettings() {
+  hideAllMenus();
+  document.getElementById('settingsPanel').style.display = 'block';
+
+  // 배경 체크 상태
+  document.getElementById('bgToggle').checked = !(localStorage.getItem('hideBG') === '1');
+
+  // 언어 셀렉트
+  document.getElementById('langSelect').value = localStorage.getItem('lang') || 'ko';
+
+  // 언어 반영
+  applyLanguage();
+}
+
+function closeSettings() {
+  document.getElementById('settingsPanel').style.display = 'none';
+  document.getElementById('mainMenu').style.display = 'block';
+}
+
+// === [2] 배경 on/off ===
+document.getElementById('bgToggle').addEventListener('change', function() {
+  localStorage.setItem('hideBG', this.checked ? '0' : '1');
+  updateBGVisible();
+});
+
+function updateBGVisible() {
+  const hideBG = localStorage.getItem('hideBG') === '1';
+  document.getElementById('starCanvas').style.display = 'block'; // 항상 block
+  window._hideBG = hideBG;
+}
+updateBGVisible();
+
+// === [3] 언어 변경 ===
+document.getElementById('langSelect').addEventListener('change', function() {
+  localStorage.setItem('lang', this.value);
+  applyLanguage();
+});
+
+function applyLanguage() {
+  const lang = localStorage.getItem('lang') || 'ko';
+  // label 및 버튼 텍스트만 바꿈 (실제 게임 내 텍스트도 영어 추가하려면 번역 데이터 더 필요!)
+  if (lang === 'en') {
+    document.getElementById('settingsTitle').textContent = '⚙️ Settings';
+    document.getElementById('bgLabel').textContent = 'Show Background';
+    document.getElementById('langLabel').textContent = 'Language';
+    document.getElementById('resetBtn').textContent = 'Reset Game';
+    document.getElementById('closeSettingsBtn').textContent = 'Close';
+    // ... (필요하면 더 추가)
+  } else {
+    document.getElementById('settingsTitle').textContent = '⚙️ 설정';
+    document.getElementById('bgLabel').textContent = '배경 표시';
+    document.getElementById('langLabel').textContent = '언어';
+    document.getElementById('resetBtn').textContent = '게임 리셋';
+    document.getElementById('closeSettingsBtn').textContent = '닫기';
+  }
+}
+
+// === [4] 게임 리셋 ===
+function resetGameWithConfirm() {
+  if (confirm(getT('resetConfirm'))) {
+    localStorage.clear();
+    location.reload();
+  }
+}
 </script>
 </body>
 </html>
