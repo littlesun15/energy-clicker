@@ -126,13 +126,11 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 1.3.0v 하드코어 모드 추가(발전소 최대 10개 건설 제한, 가격 상승률 1.25배, 테라포밍(엔딩)1,500만)<br>
-    -1.4.0v 가끔씩 랜덤 이벤트, 배경 변화(에너지 양에 따라서 변화)<br>
+    - 패치노트:1.4.0v 가끔씩 랜덤 이벤트, 배경 변화(에너지 양에 따라서 변화)<br>
     -1.4.1v 행성 크기 변경<br>
     -1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
-    -업데이트 추천 방법은? 카톡이나 메세지로!<br>
-    -당신은 공지사항을 자주 보시는 사람! 보셨다면 카톡이나 메세지로 보내 주세요~<br><br>
-    -현재 버전: 1.4.5v
+    -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br><br>
+    -현재 버전: 1.5.0v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -164,6 +162,7 @@
       <button onclick="showTimeAttackMenu()">⏱️ 타임어택 모드</button>
       <button onclick="showLandModeMenu()">🌎 땅 부족 모드</button>
       <button onclick="showHardcoreMenu()">💀 하드코어 모드</button>
+      <button onclick="startInfiniteMode()">♾️ 무한 모드</button>
     </div>
     <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
   </div>
@@ -363,6 +362,8 @@ let inLimitedLandMode = false;
 let timeLeft = 1500;
 let inHardcoreMode = false;
 let timer = null;
+let clickTimestamps = [];
+let inInfiniteMode = false;
 
 // ★★★ 별 + 디테일 행성 전체 코드 ★★★
 const canvas = document.getElementById('starCanvas');
@@ -508,7 +509,7 @@ function drawPlanet3D(energy) {
 }
 
 function draw() {
-  if (window._hideBG) { // ⭐ 여기에 바로 넣기!
+  if (window._hideBG) {
     ctx.fillStyle = "#000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     return;
@@ -557,14 +558,53 @@ function applyLanguage() {
 }
   // ★★★ 업적 시스템 ★★★
   const achievements = {
-  firstClick: { name: () => getT('ach_firstClick'), condition: () => energy >= 1, unlocked: false },
-  solarCollector: { name: () => getT('ach_solarCollector'), condition: () => generators >= 10, unlocked: false },
-  fusionMaster: { name: () => getT('ach_fusionMaster'), condition: () => fusionPlants >= 5, unlocked: false },
-  dysonOwner: { name: () => getT('ach_dysonOwner'), condition: () => dysonSpheres >= 1, unlocked: false },
-  blackholeBoss: { name: () => getT('ach_blackholeBoss'), condition: () => blackholes >= 1, unlocked: false },
-  bigbangBreaker: { name: () => getT('ach_bigbangBreaker'), condition: () => bigbangs >= 1, unlocked: false },
-  terraformer: { name: () => getT('ach_terraformer'), condition: () => gameEnded, unlocked: false },
-  sun: { name: () => getT('ach_sun'), condition: () => fusionPlants >= 10, unlocked: false }
+  firstClick: { 
+    name: () => getT('ach_firstClick'), 
+    condition: () => energy >= 1, 
+    unlocked: false 
+  }, // 천리 길도 한 걸음 (보상 없음)
+  solarCollector: { 
+    name: () => getT('ach_solarCollector'), 
+    condition: () => generators >= 10, 
+    unlocked: false, 
+    reward: 10 
+  }, // 태양광 수집가
+  fusionMaster: { 
+    name: () => getT('ach_fusionMaster'), 
+    condition: () => fusionPlants >= 5, 
+    unlocked: false, 
+    reward: 20 
+  }, // 핵융합 마스터
+  dysonOwner: { 
+    name: () => getT('ach_dysonOwner'), 
+    condition: () => dysonSpheres >= 1, 
+    unlocked: false,
+    reward: 500
+  }, // 2형 문명
+  blackholeBoss: { 
+    name: () => getT('ach_blackholeBoss'), 
+    condition: () => blackholes >= 1, 
+    unlocked: false,
+    reward: 7500
+  }, // 블랙홀 활용가
+  bigbangBreaker: { 
+    name: () => getT('ach_bigbangBreaker'), 
+    condition: () => bigbangs >= 1, 
+    unlocked: false,
+    reward: 125000
+  }, // 빅뱅의 에너지
+  terraformer: { 
+    name: () => getT('ach_terraformer'), 
+    condition: () => gameEnded, 
+    unlocked: false
+    // reward 없음!
+  }, // 테라포밍 성공!
+  sun: { 
+    name: () => getT('ach_sun'), 
+    condition: () => fusionPlants >= 10, 
+    unlocked: false, 
+    reward: 30 
+  } // 태양
 };
 
   // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
@@ -883,11 +923,23 @@ function removeLimitedLandSave() {
 }
 
   // ★★★ 핵심 게임 함수들 (업그레이드, 발전소 구매, UI 갱신 등) ★★★
-  function gainEnergy() {
-    document.getElementById('clickSound').play();
-    energy += clickPower;
-    updateDisplay();
+ function gainEnergy() {
+  const now = Date.now();
+  // 1초 이내의 클릭만 기록
+  clickTimestamps = clickTimestamps.filter(t => now - t < 1000);
+
+  if (clickTimestamps.length >= 25) {
+    // 클릭 제한 알림(필요 없으면 주석처리)
+    // alert("초당 25회까지만 클릭할 수 있습니다!");
+    return;
   }
+
+  clickTimestamps.push(now);
+
+  document.getElementById('clickSound').play();
+  energy += clickPower;
+  updateDisplay();
+}
   function buyUpgrade() {
     if (energy >= upgradeCost) {
       energy -= upgradeCost;
@@ -1026,6 +1078,12 @@ function updateDisplay() {
   `테라포밍 (${formatNumber(inHardcoreMode ? 15000000 : 10000000)} 에너지 필요)`;
 
 updateBackground();
+
+if (inInfiniteMode) {
+    document.getElementById('terraformPanel').style.display = 'none';
+  } else {
+    document.getElementById('terraformPanel').style.display = 'block';
+  }
 }
 setInterval(() => {
   if (gameEnded) return;
@@ -1067,7 +1125,8 @@ function triggerAsteroidEvent() {
     const a = achievements[key];
     if (!a.unlocked && a.condition()) {
       a.unlocked = true;
-      alert(`🎉 업적 달성: ${a.name}`);
+      if (a.reward) clickPower += a.reward;
+      alert(`🎉 업적 달성: ${a.name()}${a.reward ? ` (+${a.reward} 클릭당 에너지)` : ""}`);
       prev = Date.now();
     }
   }
@@ -1178,6 +1237,49 @@ console.log(
     }
     renderAchievements();
    }
+function saveInfiniteGame() {
+  localStorage.setItem('inf_energy', energy);
+  localStorage.setItem('inf_clickPower', clickPower);
+  localStorage.setItem('inf_upgradeCost', upgradeCost);
+  localStorage.setItem('inf_generators', generators);
+  localStorage.setItem('inf_generatorCost', generatorCost);
+  localStorage.setItem('inf_fusionPlants', fusionPlants);
+  localStorage.setItem('inf_fusionCost', fusionCost);
+  localStorage.setItem('inf_antimatterPlants', antimatterPlants);
+  localStorage.setItem('inf_antimatterCost', antimatterCost);
+  localStorage.setItem('inf_dysonSpheres', dysonSpheres);
+  localStorage.setItem('inf_dysonCost', dysonCost);
+  localStorage.setItem('inf_blackholes', blackholes);
+  localStorage.setItem('inf_blackholeCost', blackholeCost);
+  localStorage.setItem('inf_bigbangs', bigbangs);
+  localStorage.setItem('inf_bigbangCost', bigbangCost);
+  localStorage.setItem('inf_achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked]))));
+}
+
+function loadInfiniteGame() {
+  energy = parseInt(localStorage.getItem('inf_energy')) || 0;
+  clickPower = parseInt(localStorage.getItem('inf_clickPower')) || 1;
+  upgradeCost = parseInt(localStorage.getItem('inf_upgradeCost')) || 10;
+  generators = parseInt(localStorage.getItem('inf_generators')) || 0;
+  generatorCost = parseInt(localStorage.getItem('inf_generatorCost')) || 50;
+  fusionPlants = parseInt(localStorage.getItem('inf_fusionPlants')) || 0;
+  fusionCost = parseInt(localStorage.getItem('inf_fusionCost')) || 500;
+  antimatterPlants = parseInt(localStorage.getItem('inf_antimatterPlants')) || 0;
+  antimatterCost = parseInt(localStorage.getItem('inf_antimatterCost')) || 20000;
+  dysonSpheres = parseInt(localStorage.getItem('inf_dysonSpheres')) || 0;
+  dysonCost = parseInt(localStorage.getItem('inf_dysonCost')) || 100000;
+  blackholes = parseInt(localStorage.getItem('inf_blackholes')) || 0;
+  blackholeCost = parseInt(localStorage.getItem('inf_blackholeCost')) || 750000;
+  bigbangs = parseInt(localStorage.getItem('inf_bigbangs')) || 0;
+  bigbangCost = parseInt(localStorage.getItem('inf_bigbangCost')) || 5000000;
+
+  // 업적 불러오기
+  const saved = JSON.parse(localStorage.getItem('inf_achievements') || '{}');
+  for (let key in saved) {
+    if (achievements[key]) achievements[key].unlocked = saved[key];
+  }
+  renderAchievements();
+}
 
   // ★★★ 메인/기존 함수들과 연동: ★★★
   function startNewGame() {
@@ -1203,6 +1305,28 @@ console.log(
   updateDisplay();
   document.getElementById('landLimitNotice').style.display = 'none';
 }
+function startInfiniteMode() {
+  inInfiniteMode = true;
+  inTimeAttack = false;
+  inLimitedLandMode = false;
+  inHardcoreMode = false;
+  gameEnded = false;
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  antimatterPlants = 0; antimatterCost = 20000;
+  dysonSpheres = 0; dysonCost = 100000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+
+  hideAllMenus();
+  document.getElementById('gameScreen').style.display = 'block';
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
+
+  updateDisplay();
+}
 
   // ★★★ 게임 자동 진행(생산, 세이브) ★★★
  setInterval(() => {
@@ -1216,6 +1340,7 @@ console.log(
     energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
     updateDisplay();
     saveLimitedLandGame();
+    saveInfiniteGame();
   } else {
     energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
     updateDisplay();
