@@ -129,8 +129,9 @@
     - 패치노트: 1.4.1v 행성 크기 변경<br>
     -1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
     -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br>
-    -1.5.5v 새 업적 추가, 새로운 모드 추가<br><br>
-    -현재 버전: 1.5.5v
+    -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
+    -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br><br>
+    -현재 버전: 1.6.0v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -261,10 +262,22 @@
   <div id="achievements"></div>
   <button onclick="hideAchievements()">닫기</button>
 </div>
+<div class="panel" id="researchPanel">
+  <h3>🧪 연구소</h3>
+  <button onclick="buildResearchLab()">연구소 건설 - <span id="researchLabCost">500,000</span> 에너지</button>
+  <div>보유 연구소: <span id="researchLabs">0</span></div>
+  <div>보유 RP: <span id="researchPoints">0</span></div>
+  <button onclick="openResearchMenu()">🔬 연구 시작</button>
+</div>
+<div id="researchMenu" style="display:none;" class="panel">
+  <h3>🔬 연구소 메뉴</h3>
+  <div id="researchList" style="margin:10px 0;"></div>
+  <button onclick="closeResearchMenu()">← 닫기</button>
+</div>
     <button id="restartButton" onclick="restartGame()" style="display: none;">게임 다시 시작하기</button>
     <button id="retryButton" onclick="retryTimeAttack()" style="display: none;">타임어택 다시 도전하기</button>
   </div>
-  
+
   <script>
  const LANG = {
   ko: {
@@ -367,6 +380,71 @@ let inHardcoreMode = false;
 let timer = null;
 let clickTimestamps = [];
 let inInfiniteMode = false;
+
+let researchLabs = 0;
+let researchLabCost = 500000;
+let researchPoints = 0;
+const researchItems = {
+  energyFuse: {
+    name: "🔌 에너지 생산 퓨즈",
+    cost: 100,
+    unlocked: false,
+    effect: function () {
+      if (window._boostActive) {
+        alert("이미 효과가 발동 중입니다!");
+        return;
+      }
+      window._boostActive = true;
+      alert("30초 동안 에너지 생산량이 2배로 증가합니다!");
+      const originalGenerator = generators;
+      const originalFusion = fusionPlants;
+      const originalAnti = antimatterPlants;
+      const originalDyson = dysonSpheres;
+      const originalBlackhole = blackholes;
+      const originalBigbang = bigbangs;
+
+      window._boostInterval = setInterval(() => {
+        energy += originalGenerator + originalFusion * 10 + originalAnti * 250 + originalDyson * 1000 + originalBlackhole * 5000 + originalBigbang * 100000;
+        updateDisplay();
+      }, 1000);
+
+      setTimeout(() => {
+        clearInterval(window._boostInterval);
+        window._boostActive = false;
+        alert("⚠️ 에너지 생산량 2배 효과가 종료되었습니다.");
+      }, 30000);
+    }
+  },
+
+asteroidMining: {
+    name: "🌑 소행성 채굴 기술 강화",
+    cost: 200,
+    effect: function () {
+      if (researchPoints < 200) {
+        alert("RP가 부족합니다.");
+        return;
+      }
+      researchPoints -= 200;
+      clickPower += 100000;
+      alert("💥 클릭당 에너지가 +100000 증가했습니다! (당신 때문에 온 우주의 소행성이 바닥나고 있습니다)");
+      updateDisplay();
+    }
+  },
+ energyFuse2: {
+   name: "⚡ 응축된 에너지",
+   cost: 225,
+   effect: function () {
+     if (researchPoints < 225) {
+       alert("RP가 부족합니다.");
+       return;
+     }
+     researchPoints -= 225;
+     energy += 1000000;
+     alert("⚡ 1,000,000 에너지를 획득했습니다! 이제 응축된 에너지가 아니라 그냥 에너지가 됐네요");
+     updateDisplay();
+   }
+ }
+};
 
 // ★★★ 별 + 디테일 행성 전체 코드 ★★★
 const canvas = document.getElementById('starCanvas');
@@ -570,7 +648,7 @@ function applyLanguage() {
     name: () => getT('ach_solarCollector'), 
     condition: () => generators >= 10, 
     unlocked: false, 
-    reward: 10 
+    reward: 500000 // 10
   }, // 태양광 수집가
   fusionMaster: { 
     name: () => getT('ach_fusionMaster'), 
@@ -1051,6 +1129,9 @@ function buyBigBang() {
 
 function updateDisplay() {
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
+  document.getElementById('researchLabs').textContent = formatNumber(researchLabs);
+  document.getElementById('researchLabCost').textContent = formatNumber(researchLabCost);
+  document.getElementById('researchPoints').textContent = formatNumber(researchPoints);
   checkAchievements();
   if (gameEnded) return;
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
@@ -1107,6 +1188,66 @@ if (inInfiniteMode) {
   } else {
     document.getElementById('terraformPanel').style.display = 'block';
   }
+}
+function buildResearchLab() {
+  if (energy >= researchLabCost) {
+    energy -= researchLabCost;
+    researchLabs++;
+    researchLabCost = Math.floor(researchLabCost * 1.3);
+    updateDisplay();
+  } else {
+    alert("에너지가 부족합니다.");
+  }
+}
+
+function openResearchMenu() {
+  document.getElementById('researchMenu').style.display = 'block';
+
+  const container = document.getElementById('researchList');
+  container.innerHTML = '';
+
+  for (let key in researchItems) {
+    const item = researchItems[key];
+    const div = document.createElement('div');
+    div.style.margin = '8px 0';
+    if (item.unlocked === false) {
+  const btn = document.createElement('button');
+  btn.textContent = `${item.name} - 연구 (${item.cost} RP)`;
+  btn.onclick = () => attemptResearch(key);
+  div.appendChild(btn);
+} else {
+  const btn = document.createElement('button');
+  btn.textContent = `${item.name} - 연구 (${item.cost} RP)`;
+  btn.onclick = () => item.effect();
+  div.appendChild(btn);
+}
+    container.appendChild(div);
+  }
+}
+
+function closeResearchMenu() {
+  document.getElementById('researchMenu').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+}
+
+function attemptResearch(key) {
+  const item = researchItems[key];
+  if (!item) {
+    alert("잘못된 입력입니다.");
+    return;
+  }
+  if (item.unlocked) {
+    alert("이미 연구 완료된 아이템입니다.");
+    return;
+  }
+  if (researchPoints < item.cost) {
+    alert("RP가 부족합니다.");
+    return;
+  }
+  researchPoints -= item.cost;
+  item.unlocked = true;
+  item.effect();
+  updateDisplay();
 }
 setInterval(() => {
   if (gameEnded) return;
@@ -1354,6 +1495,7 @@ function startInfiniteMode() {
   // ★★★ 게임 자동 진행(생산, 세이브) ★★★
  setInterval(() => {
   if (gameEnded) return;
+  researchPoints += researchLabs;
   if (inTimeAttack) {
     if (isPaused()) return;
     energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
