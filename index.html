@@ -130,7 +130,7 @@
     -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br>
     -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
     -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
-    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가<br><br>
+    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 50<br><br>
     -현재 버전: 1.6.3v
   </div>
   <button onclick="closeNotice()">닫기</button>
@@ -1033,9 +1033,9 @@ function removeLimitedLandSave() {
   // 1초 이내의 클릭만 기록
   clickTimestamps = clickTimestamps.filter(t => now - t < 1000);
 
-  if (clickTimestamps.length >= 25) {
+  if (clickTimestamps.length >= 15) {
     // 클릭 제한 알림(필요 없으면 주석처리)
-    // alert("초당 25회까지만 클릭할 수 있습니다!");
+    // alert("초당 15회까지만 클릭할 수 있어요~");
     return;
   }
 
@@ -1754,7 +1754,7 @@ function toggleSecretAutoClick() {
     document.getElementById('secretAutoBtn').textContent = '🛠️ 오토 클릭 끄기';
     secretAutoClickInterval = setInterval(() => {
       // 초당 25회 제한 맞춰줌
-      for (let i = 0; i < 25; i++) gainEnergy();
+      for (let i = 0; i < 50; i++) gainEnergy();
     }, 1000);
   } else {
     secretAutoClick = false;
