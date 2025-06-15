@@ -126,12 +126,12 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 1.4.1v 행성 크기 변경<br>
-    -1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
+    - 패치노트: 1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
     -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br>
     -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
-    -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br><br>
-    -현재 버전: 1.6.0v
+    -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
+    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가<br><br>
+    -현재 버전: 1.6.3v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -322,6 +322,7 @@ function getT(key) {
 
 // ★★★ [1] 전역 변수/함수 추가 (맨 위) ★★★
 let timeAttackPaused = false;
+window._fuseUsed = false;
 
 const plantOrder = [
   { key: 'bigbangs', name: '빅뱅' },
@@ -395,6 +396,7 @@ const researchItems = {
         return;
       }
       window._boostActive = true;
+      window._fuseUsed = true;
       alert("30초 동안 에너지 생산량이 2배로 증가합니다!");
       const originalGenerator = generators;
       const originalFusion = fusionPlants;
@@ -691,7 +693,24 @@ function applyLanguage() {
     condition: () => antimatterPlants >= 1,
     unlocked: false,
     reward: 150
-  } // 위험한 물질
+  }, // 위험한 물질
+ firstFuse: { 
+   name: () => "첫 퓨즈", 
+   condition: () => window._fuseUsed === true, 
+   unlocked: false, 
+   reward: 20000 
+ asteroidResearch: { 
+   name: () => "소행성 채굴", 
+   condition: () => researchItems.asteroidMining.unlocked === true, 
+   unlocked: false,
+   reward: 30000
+ },
+ condensedEnergy: { 
+   name: () => "뭉친 에너지", 
+   condition: () => researchItems.energyFuse2.unlocked === true, 
+   unlocked: false,
+   reward: 35000
+ }
 };
 
   // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
@@ -779,8 +798,6 @@ function startHardcoreGame() {
 
   document.getElementById('landLimitNotice').innerHTML =
     '💀 <b>하드코어 모드</b>: 각 발전소 최대 10개까지만 건설 가능!, 테라포밍 에너지 15,000,000!, 발전소 가격 상승률 1.25배!';
-
-  document.getElementById('landLimitNotice').style.display = 'block';
   updateDisplay();
 }
 
@@ -1127,6 +1144,12 @@ function buyBigBang() {
   }
 }
 
+function allAchievementsUnlockedExceptTerraform() {
+  return Object.keys(achievements)
+    .filter(key => key !== 'terraformer')
+    .every(key => achievements[key].unlocked);
+}
+
 function updateDisplay() {
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
   document.getElementById('researchLabs').textContent = formatNumber(researchLabs);
@@ -1187,6 +1210,23 @@ if (inInfiniteMode) {
     document.getElementById('terraformPanel').style.display = 'none';
   } else {
     document.getElementById('terraformPanel').style.display = 'block';
+  }
+  // ★★★ 업적 왕 패널 생성/삭제 ★★★
+  const kingPanelId = "achievementKingPanel";
+  let kingPanel = document.getElementById(kingPanelId);
+
+  if (allAchievementsUnlockedExceptTerraform()) {
+    if (!kingPanel) {
+      kingPanel = document.createElement('div');
+      kingPanel.className = "panel";
+      kingPanel.id = kingPanelId;
+      kingPanel.innerHTML = `<h3>👑 업적 왕 👑</h3><div>모든 업적을 달성한 당신은 진정한 업적 마스터!</div>`;
+      const terraformPanel = document.getElementById('terraformPanel');
+      const researchPanel = document.getElementById('researchPanel');
+      terraformPanel.parentNode.insertBefore(kingPanel, researchPanel);
+    }
+  } else {
+    if (kingPanel) kingPanel.remove();
   }
 }
 function buildResearchLab() {
