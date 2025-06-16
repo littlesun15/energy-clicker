@@ -1412,8 +1412,12 @@ function triggerAsteroidEvent() {
     localStorage.setItem('blackholeCost', blackholeCost);
     localStorage.setItem('bigbangs', bigbangs);
     localStorage.setItem('bigbangCost', bigbangCost);
-    localStorage.setItem('achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked]))));
+    localStorage.setItem('achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked])
+      )
+    ));
   }
+  setInterval(saveGame, 1000);
+  window.addEventListener('beforeunload', saveGame);
   function loadGame() {
     energy = parseInt(localStorage.getItem('energy')) || 0;
     clickPower = parseInt(localStorage.getItem('clickPower')) || 1;
