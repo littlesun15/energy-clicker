@@ -130,8 +130,10 @@
     -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br>
     -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
     -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
-    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 50<br><br>
-    -현재 버전: 1.6.3v
+    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 15<br>
+    -1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
+    응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간 자세한건 카톡에서!<br><br>
+    -현재 버전: 1.7.0v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -193,7 +195,7 @@
   <!-- 타임어택 모드 시작 메뉴 -->
   <div id="timeAttackMenu">
     <h1>⏱️ 타임어택 모드</h1>
-    <div style="margin:10px 0 30px 0; font-size:1.05em;">25분 안에 테라포밍을 성공하면 클리어!<br>진행 중 언제든 저장/불러오기 가능</div>
+    <div style="margin:10px 0 30px 0; font-size:1.05em;">60분 안에 테라포밍을 성공하면 클리어!<br>진행 중 언제든 저장/불러오기 가능</div>
     <button onclick="startTimeAttackGame()">⏰ 새 타임어택 시작</button>
     <button id="continueTimeAttackBtn" onclick="continueTimeAttackGame()" style="display:none;">💾 저장된 타임어택 이어하기</button>
     <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
@@ -239,19 +241,24 @@
   <div>보유: <span id="antimatterPlants">0</span></div>
 </div>
 <div class="panel">
-  <h3>🌀 다이슨 구체</h3>
+  <h3>♈ 양자 충돌기</h3>
   <button id="buyDysonSphereBtn" onclick="buyDysonSphere()">다이슨 구체 (+1000/s) - <span id="dysonCost">100000</span> 에너지</button>
   <div>보유: <span id="dysonSpheres">0</span></div>
 </div>
 <div class="panel">
-  <h3>🕳️ 블랙홀 에너지</h3>
+  <h3>🌀 다이슨 구체</h3>
   <button id="buyBlackholeBtn" onclick="buyBlackhole()">블랙홀 에너지 (+5000/s) - <span id="blackholeCost">750000</span> 에너지</button>
   <div>보유: <span id="blackholes">0</span></div>
 </div>
 <div class="panel">
-  <h3>💥 빅뱅</h3>
+  <h3>🕳️ 블랙홀 에너지</h3>
   <button id="buyBigBangBtn" onclick="buyBigBang()">빅뱅 (+100000/s) - <span id="bigbangCost">5000000</span> 에너지</button>
   <div>보유: <span id="bigbangs">0</span></div>
+</div>
+<div class="panel">
+  <h3>🌌 우주 생성기</h3>
+  <button id="buyUniverseGenBtn" onclick="buyUniverseGen()">우주 생성기 (+350,000/s) - <span id="universeGenCost">12,500,000</span> 에너지</button>
+  <div>보유: <span id="universeGens">0</span></div>
 </div>
 <div class="panel" id="terraformPanel">
   <h3>🌍 테라포밍</h3>
@@ -325,9 +332,10 @@ let timeAttackPaused = false;
 window._fuseUsed = false;
 
 const plantOrder = [
-  { key: 'bigbangs', name: '빅뱅' },
-  { key: 'blackholes', name: '블랙홀 에너지' },
-  { key: 'dysonSpheres', name: '다이슨 구체' },
+  { key: 'bigbangs', name: '블랙홀 에너지' },
+  { key: 'blackholes', name: '다이슨 구체' },
+  { key: 'dysonSpheres', name: '양자 충돌기' },
+  { key: 'universeGens', name: '우주 생성기' },
   { key: 'antimatterPlants', name: '반물질 발전소' },
   { key: 'fusionPlants', name: '핵융합 발전소' },
   { key: 'generators', name: '태양광 발전기' }
@@ -374,9 +382,10 @@ let antimatterPlants = 0, antimatterCost = 20000;
 let dysonSpheres = 0, dysonCost = 100000;
 let blackholes = 0, blackholeCost = 750000;
 let bigbangs = 0, bigbangCost = 5000000;
+let universeGens = 0, universeGenCost = 12500000;
 let inTimeAttack = false;
 let inLimitedLandMode = false;
-let timeLeft = 1500;
+let timeLeft = 3600;
 let inHardcoreMode = false;
 let timer = null;
 let clickTimestamps = [];
@@ -387,36 +396,52 @@ let researchLabCost = 500000;
 let researchPoints = 0;
 const researchItems = {
   energyFuse: {
-    name: "🔌 에너지 생산 퓨즈",
-    cost: 100,
-    unlocked: false,
-    effect: function () {
-      if (window._boostActive) {
-        alert("이미 효과가 발동 중입니다!");
+  name: "🔌 에너지 생산 퓨즈",
+  cost: 100,
+  unlocked: false,
+  effect: function () {
+    if (!this.unlocked) {
+      if (researchPoints < this.cost) {
+        alert("RP가 부족합니다.");
         return;
       }
-      window._boostActive = true;
-      window._fuseUsed = true;
-      alert("30초 동안 에너지 생산량이 2배로 증가합니다!");
-      const originalGenerator = generators;
-      const originalFusion = fusionPlants;
-      const originalAnti = antimatterPlants;
-      const originalDyson = dysonSpheres;
-      const originalBlackhole = blackholes;
-      const originalBigbang = bigbangs;
-
-      window._boostInterval = setInterval(() => {
-        energy += originalGenerator + originalFusion * 10 + originalAnti * 250 + originalDyson * 1000 + originalBlackhole * 5000 + originalBigbang * 100000;
-        updateDisplay();
-      }, 1000);
-
-      setTimeout(() => {
-        clearInterval(window._boostInterval);
-        window._boostActive = false;
-        alert("⚠️ 에너지 생산량 2배 효과가 종료되었습니다.");
-      }, 30000);
+      researchPoints -= this.cost;
+      this.unlocked = true;
+      alert("에너지 퓨즈를 만들었습니다!");
+      updateDisplay();
+      return;
     }
-  },
+    // 연구 완료 후에는 언제든 사용 가능
+    if (researchPoints < this.cost) {
+      alert("RP가 부족합니다.");
+      return;
+    }
+    if (window._boostActive) {
+      alert("이미 효과가 발동 중입니다!");
+      return;
+    }
+    researchPoints -= this.cost;
+    window._boostActive = true;
+    window._fuseUsed = true;
+    alert("30초 동안 에너지 생산량이 2배로 증가합니다!");
+    const originalGenerator = generators;
+    const originalFusion = fusionPlants;
+    const originalAnti = antimatterPlants;
+    const originalDyson = dysonSpheres;
+    const originalBlackhole = blackholes;
+    const originalBigbang = bigbangs;
+    window._boostInterval = setInterval(() => {
+      energy += originalGenerator + originalFusion * 10 + originalAnti * 250 + originalDyson * 1000 + originalBlackhole * 5000 + originalBigbang * 100000;
+      updateDisplay();
+    }, 1000);
+    setTimeout(() => {
+      clearInterval(window._boostInterval);
+      window._boostActive = false;
+      alert("⚠️ 에너지 생산량 2배 효과가 종료되었습니다.");
+    }, 30000);
+    updateDisplay();
+  }
+},
 
 asteroidMining: {
     name: "🌑 소행성 채굴 기술 강화",
@@ -431,21 +456,7 @@ asteroidMining: {
       alert("💥 클릭당 에너지가 +100000 증가했습니다! (당신 때문에 온 우주의 소행성이 바닥나고 있습니다)");
       updateDisplay();
     }
-  },
- energyFuse2: {
-   name: "⚡ 응축된 에너지",
-   cost: 225,
-   effect: function () {
-     if (researchPoints < 225) {
-       alert("RP가 부족합니다.");
-       return;
-     }
-     researchPoints -= 225;
-     energy += 1000000;
-     alert("⚡ 1,000,000 에너지를 획득했습니다! 이제 응축된 에너지가 아니라 그냥 에너지가 됐네요");
-     updateDisplay();
-   }
- }
+  }
 };
 
 // ★★★ 별 + 디테일 행성 전체 코드 ★★★
@@ -705,12 +716,6 @@ function applyLanguage() {
    condition: () => researchItems.asteroidMining.unlocked === true, 
    unlocked: false,
    reward: 30000
- },
- condensedEnergy: { 
-   name: () => "뭉친 에너지", 
-   condition: () => researchItems.energyFuse2.unlocked === true, 
-   unlocked: false,
-   reward: 35000
  }
 };
 
@@ -813,7 +818,7 @@ function startHardcoreGame() {
   dysonSpheres = 0; dysonCost = 100000;
   blackholes = 0; blackholeCost = 750000;
   bigbangs = 0; bigbangCost = 5000000;
-  timeLeft = 1500;
+  timeLeft = 3600;
   showGameScreen();
   document.getElementById('timerBox').style.display = 'block';
   document.getElementById('retryButton').style.display = 'none';
@@ -950,6 +955,10 @@ function updateTimerDisplay() {
     localStorage.setItem('ta_blackholeCost', blackholeCost);
     localStorage.setItem('ta_bigbangs', bigbangs);
     localStorage.setItem('ta_bigbangCost', bigbangCost);
+    localStorage.setItem('ta_universeGens', universeGens);
+    localStorage.setItem('ta_universeGenCost', universeGenCost);
+    localStorage.setItem('ta_researchLabs', researchLabs);
+    localStorage.setItem('ta_researchPoints', researchPoints);
     localStorage.setItem('ta_timeLeft', timeLeft);
   }
   function loadTimeAttack() {
@@ -968,7 +977,11 @@ function updateTimerDisplay() {
     blackholeCost = parseInt(localStorage.getItem('ta_blackholeCost')) || 750000;
     bigbangs = parseInt(localStorage.getItem('ta_bigbangs')) || 0;
     bigbangCost = parseInt(localStorage.getItem('ta_bigbangCost')) || 5000000;
-    timeLeft = parseFloat(localStorage.getItem('ta_timeLeft')) || 1500;
+    universeGens = parseInt(localStorage.getItem('ta_universeGens')) || 0;
+    universeGenCost = parseInt(localStorage.getItem('ta_universeGenCost')) || 12500000;
+    researchLabs = parseInt(localStorage.getItem('ta_researchLabs')) || 0;
+    researchPoints = parseInt(localStorage.getItem('ta_researchPoints')) || 0;
+    timeLeft = parseFloat(localStorage.getItem('ta_timeLeft')) || 3600;
   }
   function removeTimeAttackSave() {
     [
@@ -997,6 +1010,10 @@ function saveLimitedLandGame() {
   localStorage.setItem('land_blackholeCost', blackholeCost);
   localStorage.setItem('land_bigbangs', bigbangs);
   localStorage.setItem('land_bigbangCost', bigbangCost);
+  localStorage.setItem('land_universeGens', universeGens);
+  localStorage.setItem('land_universeGenCost', universeGenCost);
+  localStorage.setItem('land_researchLabs', researchLabs);
+  localStorage.setItem('land_researchPoints', researchPoints);
 }
 function loadLimitedLandGame() {
   energy = parseInt(localStorage.getItem('land_energy')) || 0;
@@ -1014,6 +1031,10 @@ function loadLimitedLandGame() {
   blackholeCost = parseInt(localStorage.getItem('land_blackholeCost')) || 750000;
   bigbangs = parseInt(localStorage.getItem('land_bigbangs')) || 0;
   bigbangCost = parseInt(localStorage.getItem('land_bigbangCost')) || 5000000;
+  universeGens = parseInt(localStorage.getItem('land_universeGens')) || 0;
+  universeGenCost = parseInt(localStorage.getItem('land_universeGenCost')) || 12500000;
+  researchLabs = parseInt(localStorage.getItem('land_researchLabs')) || 0;
+  researchPoints = parseInt(localStorage.getItem('land_researchPoints')) || 0;
 }
 function removeLimitedLandSave() {
   [
@@ -1035,7 +1056,7 @@ function removeLimitedLandSave() {
 
   if (clickTimestamps.length >= 15) {
     // 클릭 제한 알림(필요 없으면 주석처리)
-    // alert("초당 15회까지만 클릭할 수 있어요~");
+    // alert("초당 16회까지만 클릭할 수 있어요~");
     return;
   }
 
@@ -1143,6 +1164,20 @@ function buyBigBang() {
     }
     updateDisplay();
   }
+ }
+function buyUniverseGen() {
+  if ((inLimitedLandMode || inHardcoreMode) && universeGens >= 10) {
+    alert("이 모드에서는 우주 생성기를 10개 이상 건설할 수 없습니다!");
+    return;
+  }
+  if (energy >= universeGenCost) {
+    energy -= universeGenCost;
+    universeGens++;
+    if (!inSecretMode) {
+      universeGenCost = Math.floor(universeGenCost * (inHardcoreMode ? 1.25 : 1.1));
+    }
+    updateDisplay();
+  }
 }
 
 function allAchievementsUnlockedExceptTerraform() {
@@ -1150,7 +1185,6 @@ function allAchievementsUnlockedExceptTerraform() {
     .filter(key => key !== 'terraformer')
     .every(key => achievements[key].unlocked);
 }
-
 function updateDisplay() {
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
   document.getElementById('researchLabs').textContent = formatNumber(researchLabs);
@@ -1174,7 +1208,12 @@ function updateDisplay() {
   document.getElementById('dysonCost').textContent = formatNumber(dysonCost);
   document.getElementById('dysonSpheres').textContent = formatNumber(dysonSpheres);
   document.getElementById('buyDysonSphereBtn').innerHTML =
-  `다이슨 구체 (+${formatNumber(1000)}/s) - <span id="dysonCost">${formatNumber(dysonCost)}</span> 에너지`;
+    `양자 충돌기 (+${formatNumber(1000)}/s) - <span id="dysonCost">${formatNumber(dysonCost)}</span> 에너지`;
+
+  document.getElementById('universeGenCost').textContent = formatNumber(universeGenCost);
+  document.getElementById('universeGens').textContent = formatNumber(universeGens);
+  document.getElementById('buyUniverseGenBtn').innerHTML =
+    `우주 생성기 (+${formatNumber(350000)}/s) - <span id="universeGenCost">${formatNumber(universeGenCost)}</span> 에너지`;
 
   document.getElementById('blackholeCost').textContent = formatNumber(blackholeCost);
   document.getElementById('blackholes').textContent = formatNumber(blackholes);
@@ -1188,7 +1227,8 @@ function updateDisplay() {
       antimatterPlants * 250 +
       dysonSpheres * 1000 +
       blackholes * 5000 +
-      bigbangs * 100000
+      bigbangs * 100000 +
+      universeGens * 350000
     )}`;
 
   document.getElementById('buyUpgradeBtn').innerHTML =
@@ -1198,16 +1238,16 @@ function updateDisplay() {
   document.getElementById('buyFusionPlantBtn').innerHTML =
     `핵융합 발전소 (+${formatNumber(10)}/s) - <span id="fusionCost">${formatNumber(fusionCost)}</span> 에너지`;
   document.getElementById('buyBlackholeBtn').innerHTML =
-    `블랙홀 에너지 (+${formatNumber(5000)}/s) - <span id="blackholeCost">${formatNumber(blackholeCost)}</span> 에너지`;
+    `다이슨 구체 (+${formatNumber(5000)}/s) - <span id="blackholeCost">${formatNumber(blackholeCost)}</span> 에너지`;
   document.getElementById('buyBigBangBtn').innerHTML =
-    `빅뱅 (+${formatNumber(100000)}/s) - <span id="bigbangCost">${formatNumber(bigbangCost)}</span> 에너지`;
+    `블랙홀 에너지 (+${formatNumber(100000)}/s) - <span id="bigbangCost">${formatNumber(bigbangCost)}</span> 에너지`;
 
   document.querySelector('#terraformPanel button').textContent =
-  `테라포밍 (${formatNumber(inHardcoreMode ? 15000000 : 10000000)} 에너지 필요)`;
+    `테라포밍 (${formatNumber(inHardcoreMode ? 50000000 : 30000000)} 에너지 필요)`;
 
-updateBackground();
+  updateBackground();
 
-if (inInfiniteMode) {
+  if (inInfiniteMode) {
     document.getElementById('terraformPanel').style.display = 'none';
   } else {
     document.getElementById('terraformPanel').style.display = 'block';
@@ -1235,7 +1275,7 @@ function buildResearchLab() {
     energy -= researchLabCost;
     researchLabs++;
     if (!inSecretMode) {
-      researchLabCost = Math.floor(researchLabCost * 1.3);
+      researchLabCost = Math.floor(researchLabCost * (inHardcoreMode ? 1.25 : 1.1));
     }
     updateDisplay();
   } else {
@@ -1255,8 +1295,8 @@ function openResearchMenu() {
     div.style.margin = '8px 0';
     if (item.unlocked === false) {
   const btn = document.createElement('button');
-  btn.textContent = `${item.name} - 연구 (${item.cost} RP)`;
-  btn.onclick = () => attemptResearch(key);
+  btn.textContent = `${item.name} - 연구 (${item.cost} RP)`;  // 이렇게!
+  btn.onclick = () => item.effect();
   div.appendChild(btn);
 } else {
   const btn = document.createElement('button');
@@ -1320,7 +1360,7 @@ function triggerAsteroidEvent() {
   const loss = Math.floor(Math.random() * (500000 - 50000 + 1)) + 50000;
   if (energy <= loss) {
     energy = 0;
-    alert(`💥 에너지 폭발! 모든 에너지가 사라졌다!`);
+    alert("💥 에너지 폭발! 모든 에너지가 사라졌다!");
   } else {
     energy -= loss;
     alert(`💥 에너지 폭발! 에너지가 ${formatNumber(loss)}만큼 사라졌다!`);
@@ -1340,20 +1380,22 @@ function triggerAsteroidEvent() {
   renderAchievements();
 }
   function renderAchievements() {
-    const panel = document.getElementById('achievements');
-    panel.innerHTML = '';
-    for (let key in achievements) {
-      if (achievements[key].unlocked) {
-        const div = document.createElement('div');
-        div.textContent = achievements[key].name();
-        div.style.color = 'gold';
-        div.style.margin = '5px';
-        panel.appendChild(div);
-      }
+  const panel = document.getElementById('achievements');
+  panel.innerHTML = '';
+  for (let key in achievements) {
+    const div = document.createElement('div');
+    div.textContent = achievements[key].name();
+    if (achievements[key].unlocked) {
+      div.style.color = 'gold'; // 달성 업적 노란색
+    } else {
+      div.style.color = 'gray'; // 미달성 업적 회색
     }
-  }
+    div.style.margin = '5px';
+    panel.appendChild(div);
+    }
+   }
   function terraformPlanet() {
-  let required = inHardcoreMode ? 15000000 : 10000000;
+  let required = inHardcoreMode ? 50000000 : 30000000;
   if (energy >= required) {
     if (inTimeAttack) {
       endTimeAttack(true);
@@ -1394,7 +1436,6 @@ function triggerAsteroidEvent() {
    localStorage.setItem('upgradeCost', upgradeCost);
     if (inTimeAttack) {
       saveTimeAttack();
-      alert('타임어택 저장 완료!');
       return;
     }
     localStorage.setItem('energy', energy);
@@ -1412,6 +1453,10 @@ function triggerAsteroidEvent() {
     localStorage.setItem('blackholeCost', blackholeCost);
     localStorage.setItem('bigbangs', bigbangs);
     localStorage.setItem('bigbangCost', bigbangCost);
+    localStorage.setItem('universeGens', universeGens);
+    localStorage.setItem('universeGenCost', universeGenCost);
+    localStorage.setItem('researchLabs', researchLabs);
+    localStorage.setItem('researchPoints', researchPoints);
     localStorage.setItem('achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked])
       )
     ));
@@ -1434,6 +1479,10 @@ function triggerAsteroidEvent() {
     blackholeCost = parseInt(localStorage.getItem('blackholeCost')) || 750000;
     bigbangs = parseInt(localStorage.getItem('bigbangs')) || 0;
     bigbangCost = parseInt(localStorage.getItem('bigbangCost')) || 5000000;
+    universeGens = parseInt(localStorage.getItem('universeGens')) || 0;
+    universeGenCost = parseInt(localStorage.getItem('universeGenCost')) || 12500000;
+    researchLabs = parseInt(localStorage.getItem('researchLabs')) || 0;
+    researchPoints = parseInt(localStorage.getItem('researchPoints')) || 0;
 alert('loadGame called! energy=' + energy);
 console.log(
     'loadGame() called!',
@@ -1464,6 +1513,10 @@ function saveInfiniteGame() {
   localStorage.setItem('inf_blackholeCost', blackholeCost);
   localStorage.setItem('inf_bigbangs', bigbangs);
   localStorage.setItem('inf_bigbangCost', bigbangCost);
+  localStorage.setItem('inf_universeGens', universeGens);
+  localStorage.setItem('inf_universeGenCost', universeGenCost);
+  localStorage.setItem('inf_researchLabs', researchLabs);
+  localStorage.setItem('inf_researchPoints', researchPoints);
   localStorage.setItem('inf_achievements', JSON.stringify(Object.fromEntries(Object.entries(achievements).map(([k, v]) => [k, v.unlocked]))));
 }
 
@@ -1483,6 +1536,10 @@ function loadInfiniteGame() {
   blackholeCost = parseInt(localStorage.getItem('inf_blackholeCost')) || 750000;
   bigbangs = parseInt(localStorage.getItem('inf_bigbangs')) || 0;
   bigbangCost = parseInt(localStorage.getItem('inf_bigbangCost')) || 5000000;
+  universeGens = parseInt(localStorage.getItem('inf_universeGens')) || 0;
+  universeGenCost = parseInt(localStorage.getItem('inf_universeGenCost')) || 12500000;
+  researchLabs = parseInt(localStorage.getItem('inf_researchLabs')) || 0;
+  researchPoints = parseInt(localStorage.getItem('inf_researchPoints')) || 0;
 
   // 업적 불러오기
   const saved = JSON.parse(localStorage.getItem('inf_achievements') || '{}');
@@ -1545,16 +1602,16 @@ function startInfiniteMode() {
   researchPoints += researchLabs;
   if (inTimeAttack) {
     if (isPaused()) return;
-    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+   energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000 + universeGens * 350000;
     updateDisplay();
     saveTimeAttack();
   } else if (inLimitedLandMode) {
-    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000 + universeGens * 350000;
     updateDisplay();
     saveLimitedLandGame();
     saveInfiniteGame();
   } else {
-    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000;
+    energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000 + universeGens * 350000;
     updateDisplay();
     saveGame();
   }
