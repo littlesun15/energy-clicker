@@ -126,14 +126,14 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    - 패치노트: 1.4.5v 설정 메뉴 추가(배경,언어,리셋)(언어는 일부만 바뀜(설정탭,업적 등))<br>
-    -1.5.0v 업적 보상 추가, 최대 가능한 클릭 횟수는 초당 25로 변경(오토클릭 막기용),새로운 모드 추가<br>
+    패치노트<br>
     -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
     -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
     -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 15<br>
     -1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
-    응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간 자세한건 카톡에서!<br><br>
-    -현재 버전: 1.7.0v
+    응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간<br>
+    -1.7.1v 업적 시스템 수정<br><br>
+    -현재 버전: 1.7.1v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -297,10 +297,10 @@
     ach_firstClick: "천리 길도 한 걸음",
     ach_solarCollector: "태양광 수집가",
     ach_fusionMaster: "핵융합 마스터",
-    ach_dysonOwner: "2형 문명",
-    ach_blackholeBoss: "블랙홀 활용가",
-    ach_bigbangBreaker: "빅뱅의 에너지",
-    ach_terraformer: "테라포밍 성공!",
+    ach_dysonOwner: "고급 기술",
+    ach_blackholeBoss: "2형 문명",
+    ach_bigbangBreaker: "블랙홀 황용가",
+    ach_universeCreator: "우주 창조자",
     ach_sun: "태양",
     ach_dangerousMatter: "위험한 물질"
   },
@@ -314,10 +314,10 @@
     ach_firstClick: "A Journey of a Thousand Miles",
     ach_solarCollector: "Solar Collector",
     ach_fusionMaster: "Fusion Master",
-    ach_dysonOwner: "Type II Civilization",
-    ach_blackholeBoss: "Black Hole User",
-    ach_bigbangBreaker: "Energy of Big Bang",
-    ach_terraformer: "Terraforming Success!",
+    ach_dysonOwner: "Advanced Tech",
+    ach_blackholeBoss: "Type II Civilization",
+    ach_bigbangBreaker: "Black Hole User",
+    ach_universeCreator: "Universe Creator",
     ach_sun: "Sun",
     ach_dangerousMatter: "Dangerous Matter"
   }
@@ -446,6 +446,7 @@ const researchItems = {
 asteroidMining: {
     name: "🌑 소행성 채굴 기술 강화",
     cost: 200,
+    unlocked: false,
     effect: function () {
       if (researchPoints < 200) {
         alert("RP가 부족합니다.");
@@ -669,12 +670,12 @@ function applyLanguage() {
     unlocked: false, 
     reward: 20 
   }, // 핵융합 마스터
-  dysonOwner: { 
-    name: () => getT('ach_dysonOwner'), 
-    condition: () => dysonSpheres >= 1, 
-    unlocked: false,
-    reward: 500
-  }, // 2형 문명
+   dysonOwner: { 
+  name: () => getT('ach_dysonOwner'), 
+  condition: () => dysonSpheres >= 1, 
+  unlocked: false,
+  reward: 500
+  },// 2형 문명
   blackholeBoss: { 
     name: () => getT('ach_blackholeBoss'), 
     condition: () => blackholes >= 1, 
@@ -687,12 +688,12 @@ function applyLanguage() {
     unlocked: false,
     reward: 125000
   }, // 빅뱅의 에너지
-  terraformer: { 
-    name: () => getT('ach_terraformer'), 
-    condition: () => gameEnded, 
-    unlocked: false
-    // reward 없음!
-  }, // 테라포밍 성공!
+  universeCreator: { 
+  name: () => getT('ach_universeCreator'), 
+  condition: () => universeGens >= 1,
+  unlocked: false,
+  reward: 300000
+},
   sun: { 
     name: () => getT('ach_sun'), 
     condition: () => fusionPlants >= 10, 
@@ -1182,7 +1183,6 @@ function buyUniverseGen() {
 
 function allAchievementsUnlockedExceptTerraform() {
   return Object.keys(achievements)
-    .filter(key => key !== 'terraformer')
     .every(key => achievements[key].unlocked);
 }
 function updateDisplay() {
