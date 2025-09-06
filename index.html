@@ -127,13 +127,13 @@
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
     패치노트<br>
-    -1.5.5v 새 업적 추가, 새로운 모드 추가<br>
-    -1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
-    -1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 15<br>
-    -1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
+    1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
+    1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 15<br>
+    1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
     응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간<br>
-    -1.7.1v 업적 시스템 수정<br><br>
-    -현재 버전: 1.7.1v
+    1.7.1v 업적 시스템 수정<br>
+    1.8.0v 한정 모드와 한정 상인 등장, 비밀모드 비밀번호 바뀜<br><br>
+    현재 버전: 1.8.0v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -167,6 +167,7 @@
       <button onclick="showHardcoreMenu()">💀 하드코어 모드</button>
       <button onclick="startInfiniteMode()">♾️ 무한 모드</button>
       <button onclick="showSecretModePassword()">🕵️‍♂️ 비밀모드</button>
+      <button onclick="showAutumnModeMenu()">🍂 가을 모드</button>
     </div>
     <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
   </div>
@@ -189,6 +190,17 @@
   </div>
   <button onclick="startLimitedLandGame()">🌱 새 땅 부족 모드 시작</button>
   <button id="continueLandModeBtn" onclick="continueLimitedLandGame()" style="display:none;">💾 저장된 땅부족 이어하기</button>
+  <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
+</div>
+
+<div id="autumnModeMenu" style="display:none;">
+  <h1>🍂 가을 모드</h1>
+  <div style="margin:10px 0 30px 0; font-size:1.05em;">
+    가을이 되서 나온 가을 모드!<br>
+    한정 모드니 많이 즐겨주세요~<br>
+    비밀번호는 wpwtre(퍼즐)<br>
+  </div>
+  <button onclick="startAutumnGame()">🍁 새 가을 모드 시작</button>
   <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
 </div>
 
@@ -217,10 +229,18 @@
     <div id="productionRate">초당 생산량: 0</div>
     <div id="clickPower">클릭당 에너지: 1</div>
 <button id="saveGameBtn" onclick="saveGame()">💾 저장하기</button>
+<button id="autumnTraderBtn" style="display:none;" onclick="showAutumnTrader()">🛒 가을 상인</button>
 <button id="pauseButton" onclick="togglePause()" style="display:none;">⏸️ 일시정지</button>
 <button id="gainEnergyBtn" onclick="gainEnergy()">⚡ 석유 시추하기</button>
 <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
 <button id="showAchievementsBtn" onclick="showAchievements()">🏆 업적 보기</button>
+<div id="autumnTraderMenu" class="panel" style="display:none; max-width:720px;">
+  <h2>🛒 가을 상인</h2>
+  <div id="autumnTraderItems" style="display:flex; flex-direction:column; gap:10px;"></div>
+  <div style="margin-top:14px;">
+    <button onclick="closeAutumnTrader()">닫기</button>
+  </div>
+</div>
 <div class="panel">
   <h3>🔧 석유 시추 장비 강화</h3>
   <button id="buyUpgradeBtn" onclick="buyUpgrade()">석유 시추 장비 강화 (+1) - <span id="upgradeCost">10</span> 에너지</button>
@@ -280,6 +300,11 @@
   <h3>🔬 연구소 메뉴</h3>
   <div id="researchList" style="margin:10px 0;"></div>
   <button onclick="closeResearchMenu()">← 닫기</button>
+</div>
+<div id="leavesChoicePanel" class="panel" style="display:none;">
+  <h3>🍂 낙엽 이벤트!</h3>
+  <div id="leavesChoices"></div>
+  <button onclick="closeLeavesChoicePanel()">닫기</button>
 </div>
     <button id="restartButton" onclick="restartGame()" style="display: none;">게임 다시 시작하기</button>
     <button id="retryButton" onclick="retryTimeAttack()" style="display: none;">타임어택 다시 도전하기</button>
@@ -384,6 +409,12 @@ let blackholes = 0, blackholeCost = 750000;
 let bigbangs = 0, bigbangCost = 5000000;
 let universeGens = 0, universeGenCost = 12500000;
 let inTimeAttack = false;
+let _leavesEventActive = false;
+let _windEventActive = false;
+let inAutumnMode = false;
+let autumnLubeOwned = false;
+let windAnchorOwned = false;
+let windPerfumeCharges = 0;
 let inLimitedLandMode = false;
 let timeLeft = 3600;
 let inHardcoreMode = false;
@@ -722,12 +753,20 @@ function applyLanguage() {
 
   // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
  function hideAllMenus() {
-  document.getElementById('mainMenu').style.display = 'none';
-  document.getElementById('challengeMenu').style.display = 'none';
-  document.getElementById('timeAttackMenu').style.display = 'none';
-  document.getElementById('gameScreen').style.display = 'none';
-  document.getElementById('noticePanel').style.display = 'none';
-  document.getElementById('landModeMenu').style.display = 'none';
+  const hide = (id) => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
+  hide('mainMenu');
+  hide('challengeMenu');
+  hide('timeAttackMenu');
+  hide('landModeMenu');
+  hide('hardcoreMenu');
+  hide('autumnModeMenu');
+  hide('gameScreen');
+  hide('noticePanel');
+  hide('researchMenu');
+  hide('achievementsPanel');
+  hide('leavesChoicePanel');
+  hide('timerBox');
+  hide('landLimitNotice');
 }
 
   function showChallengeMenu() {
@@ -754,6 +793,8 @@ function showTimeAttackMenu() {
   document.getElementById('achievementsPanel').style.display = 'none';
   document.getElementById('landLimitNotice').style.display = 'none';
   inHardcoreMode = false;
+  inAutumnMode = false;
+  const tbtn = document.getElementById('autumnTraderBtn'); if (tbtn) tbtn.style.display = 'none';
   if (inTimeAttack) {
     inTimeAttack = false;
     clearInterval(timer);
@@ -786,6 +827,140 @@ function showHardcoreMenu() {
   hideAllMenus();
   document.getElementById('hardcoreMenu').style.display = 'block';
 }
+function showAutumnTrader() {
+  if (!inAutumnMode) { alert("가을 모드에서만 이용 가능합니다!"); return; }
+  renderAutumnTrader();
+  document.getElementById('autumnTraderMenu').style.display = 'block';
+}
+function closeAutumnTrader() {
+  document.getElementById('autumnTraderMenu').style.display = 'none';
+}
+function showAutumnModeMenu() {
+  hideAllMenus();
+  document.getElementById('autumnModeMenu').style.display = 'block';
+}
+function openLeavesChoicePanel(choices) {
+  const box = document.getElementById('leavesChoices');
+  box.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.textContent = c.label;
+    btn.onclick = () => { c.onPick(); closeLeavesChoicePanel(); };
+    box.appendChild(btn);
+  });
+  document.getElementById('leavesChoicePanel').style.display = 'block';
+}
+function closeLeavesChoicePanel() {
+  document.getElementById('leavesChoicePanel').style.display = 'none';
+}
+function renderAutumnTrader() {
+  const box = document.getElementById('autumnTraderItems');
+  if (!box) return;
+  box.innerHTML = '';
+
+  const items = [
+    // 🛢️ 가을 강화 윤활유 — RP 450, 영구(이번 런) 1회: 클릭당 에너지 +10,000
+    {
+      id: 'autumn_lube',
+      name: '🛢️ 가을 강화 윤활유',
+      desc: '영구 효과(이번 런): 클릭당 에너지 +10,000 (1회 한정)',
+      cost: 450, currency: 'RP',
+      canBuy: () => !autumnLubeOwned,
+      buy: () => {
+        if (researchPoints < 450) return alert('RP가 부족합니다.');
+        researchPoints -= 450;
+        autumnLubeOwned = true;
+        clickPower += 10000;
+        alert('클릭당 에너지 +10,000! (가을 강화 윤활유 적용)');
+        updateDisplay(); renderAutumnTrader();
+      }
+    },
+
+    // ⚓ 바람 닻 — RP 300, 단일 보유: 다음 거센 바람 패널티 1회 무효
+    {
+      id: 'wind_anchor',
+      name: '⚓ 바람 닻',
+      desc: '다음 거센 바람 패널티 1회 무효 (중복 보유 불가)',
+      cost: 300, currency: 'RP',
+      canBuy: () => !windAnchorOwned,
+      buy: () => {
+        if (researchPoints < 300) return alert('RP가 부족합니다.');
+        researchPoints -= 300;
+        windAnchorOwned = true;
+        alert('바람 닻 장착: 다음 거센 바람 패널티를 막아냅니다.');
+        updateDisplay(); renderAutumnTrader();
+      }
+    },
+
+    // 🌬️ 산들바람 향 — RP 250, 무한: 다음 산들바람 확정(거센 바람 대체 없음)
+    {
+      id: 'wind_perfume',
+      name: '🌬️ 산들바람 향',
+      desc: '다음 산들바람을 확정 발생(거센 바람으로 대체되지 않음)',
+      cost: 250, currency: 'RP',
+      canBuy: () => true,
+      buy: () => {
+        if (researchPoints < 250) return alert('RP가 부족합니다.');
+        researchPoints -= 250;
+        windPerfumeCharges += 1;
+        alert('산들바람 향을 1회 충전했습니다.');
+        updateDisplay(); renderAutumnTrader();
+      }
+    },
+
+    // 🎲 바람의 주사위 — RP 120, 즉시 50%:+1,500,000 / 50%:-750,000
+    {
+      id: 'wind_dice',
+      name: '🎲 바람의 주사위',
+      desc: '즉시 50%: +1,500,000 / 50%: -750,000',
+      cost: 120, currency: 'RP',
+      canBuy: () => true,
+      buy: () => {
+        if (researchPoints < 120) return alert('RP가 부족합니다.');
+        researchPoints -= 120;
+        if (Math.random() < 0.5) { energy += 1500000; alert('행운! 에너지 +1,500,000'); }
+        else { energy = Math.max(0, energy - 750000); alert('앗… 에너지 -750,000'); }
+        updateDisplay(); renderAutumnTrader();
+      }
+    },
+
+    // 📦 양자 압축 팩 — RP 1000, 즉시 +12,000,000
+    {
+      id: 'quantum_pack',
+      name: '📦 양자 압축 팩',
+      desc: '즉시 에너지 +12,000,000',
+      cost: 1000, currency: 'RP',
+      canBuy: () => true,
+      buy: () => {
+        if (researchPoints < 1000) return alert('RP가 부족합니다.');
+        researchPoints -= 1000;
+        energy += 12000000;
+        alert('에너지 +12,000,000 획득!');
+        updateDisplay(); renderAutumnTrader();
+      }
+    },
+  ];
+
+  items.forEach(it => {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.justifyContent = 'space-between';
+    row.style.alignItems = 'center';
+    row.style.gap = '8px';
+
+    const left = document.createElement('div');
+    left.innerHTML = `<b>${it.name}</b><br><small>${it.desc}</small>`;
+
+    const btn = document.createElement('button');
+    btn.textContent = `${it.currency} ${it.cost} 구매`;
+    btn.disabled = !it.canBuy();
+    btn.onclick = it.buy;
+
+    row.appendChild(left);
+    row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
 function startHardcoreGame() {
   inHardcoreMode = true;
   gameEnded = false;
@@ -805,6 +980,35 @@ function startHardcoreGame() {
 
   document.getElementById('landLimitNotice').innerHTML =
     '💀 <b>하드코어 모드</b>: 각 발전소 최대 10개까지만 건설 가능!, 테라포밍 에너지 15,000,000!, 발전소 가격 상승률 1.25배!';
+  updateDisplay();
+}
+
+function startAutumnGame() {
+  inAutumnMode = true;
+  inTimeAttack = false;
+  inLimitedLandMode = false;
+  inHardcoreMode = false;
+  inInfiniteMode = false;
+  gameEnded = false;
+
+  // 기본값 초기화
+  energy = 0; clickPower = 1; upgradeCost = 10;
+  generators = 0; generatorCost = 50;
+  fusionPlants = 0; fusionCost = 500;
+  antimatterPlants = 0; antimatterCost = 20000;
+  dysonSpheres = 0; dysonCost = 100000;
+  blackholes = 0; blackholeCost = 750000;
+  bigbangs = 0; bigbangCost = 5000000;
+  universeGens = 0; universeGenCost = 12500000;
+
+  showGameScreen();
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
+
+  const tbtn = document.getElementById('autumnTraderBtn');
+  if (tbtn) tbtn.style.display = 'inline-block';
+
   updateDisplay();
 }
 
@@ -1344,6 +1548,19 @@ setInterval(() => {
   }
 }, 60000);
 
+setInterval(() => {
+  if (inAutumnMode && !gameEnded && !_windEventActive) {
+    triggerLeavesEvent();
+  }
+}, 120000); // 120,000ms = 2분
+
+// 🍃 산들바람/거센 바람: 가을 모드에서 1분마다 시도 (낙엽과 겹치지 않음)
+setInterval(() => {
+  if (inAutumnMode && !gameEnded && !_leavesEventActive) {
+    triggerWindEvent();
+  }
+}, 60000); // 60,000ms = 1분
+
 function triggerAsteroidEvent() {
   for (const plant of plantOrder) {
     if (window[plant.key] > 0) {
@@ -1354,6 +1571,84 @@ function triggerAsteroidEvent() {
     }
   }
   // 아무 발전소도 없을 때는 아무 일도 없음
+}
+
+function triggerLeavesEvent() {
+  if (!inAutumnMode || gameEnded || _leavesEventActive) return;
+  _leavesEventActive = true;
+
+  const randInt = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
+
+  const choices = [
+    {
+      label: "낙엽을 치운다 (에너지 +10,000~500,000)",
+      onPick: () => {
+        const gain = randInt(10000, 500000);
+        energy += gain;
+        alert(`에너지 +${gain.toLocaleString()} 획득!`);
+        updateDisplay();
+        _leavesEventActive = false;
+      }
+    },
+    {
+      label: "낙엽을 연구한다 (클릭당 +100~5,000)",
+      onPick: () => {
+        const inc = randInt(100, 5000);
+        clickPower += inc;
+        alert(`클릭당 에너지 +${inc.toLocaleString()}!`);
+        updateDisplay();
+        _leavesEventActive = false;
+      }
+    }
+  ];
+
+  openLeavesChoicePanel(choices);
+}
+
+// 🍂 가을 모드: 산들바람/거센 바람 이벤트
+function triggerWindEvent() {
+  if (!inAutumnMode || gameEnded) return;
+  if (_leavesEventActive || _windEventActive) return; // 낙엽과 겹치지 않게, 중복 방지
+
+  _windEventActive = true;
+
+  // 25% 확률로 '거센 바람'이 산들바람을 대체
+  let isGale = Math.random() < 0.25;
+
+  // ‘산들바람 향’이 있으면 이번 회차는 산들바람 확정
+  if (windPerfumeCharges > 0) {
+    isGale = false;
+    windPerfumeCharges -= 1;
+    alert('🌬️ 산들바람 향 덕분에 이번에는 산들바람이 불었습니다!');
+  }
+
+  if (isGale) {
+    // 1단계 알림
+    alert("💨 거센 바람이 불어왔습니다!");
+    // 결과 처리
+    if (Math.random() < 0.9) {
+      if (windAnchorOwned) {
+        windAnchorOwned = false;  // 1회 소모
+        alert("⚓ 바람 닻이 패널티를 막아냈습니다!");
+      } else {
+        energy = Math.max(0, energy - 2500000);
+        alert("에너지가 2,500,000 줄어들었습니다...");
+      }
+    } else {
+      energy += 5000000;
+      alert("행운의 돌풍! 에너지가 5,000,000 늘어났습니다!");
+    }
+    updateDisplay();
+  } else {
+    // 산들바람: 즉시 에너지 +100,000 ~ +250,000
+    const randInt = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
+    const gain = randInt(100000, 250000);
+    energy += gain;
+    alert(`🍃 산들바람이 스쳤다! 에너지 +${gain.toLocaleString()}`);
+    updateDisplay();
+  }
+
+  setTimeout(() => { _windEventActive = false; }, 500);
 }
 
  function triggerExplosionEvent() {
@@ -1762,7 +2057,7 @@ function closeSecretModeModal() {
 // 비밀번호 확인
 function checkSecretModePassword() {
   const pw = document.getElementById('secretPasswordInput').value;
-  if (pw === "5293238") {
+  if (pw === "202543") {
     closeSecretModeModal();
     startSecretMode();
   } else {
