@@ -44,7 +44,7 @@
       color: #ffffff;
       text-shadow: 0 0 10px #00bcd4;
     }
-    #energy, #productionRate, #clickPower {
+    #energy, #productionRate, #clickPower, #magicStone {
       font-size: 1.3em;
       font-weight: bold;
       color: #aefeff;
@@ -126,14 +126,16 @@
 <div id="noticePanel" style="display:none;">
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
-    패치노트<br>
-    1.6.0v 기존 건물과 다른 건물 연구소 등장!<br>
+    -패치노트-<br>
     1.6.3v 업적 3개 추가, 새로운 엔딩(업적 왕) 추가,최대 초당 클릭 가능 횟수15,비밀모드 오토 15<br>
     1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
     응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간<br>
     1.7.1v 업적 시스템 수정<br>
-    1.8.0v 한정 모드와 한정 상인 등장, 비밀모드 비밀번호 바뀜<br><br>
-    현재 버전: 1.8.0v
+    1.8.0v 한정 모드와 한정 상인 등장, 비밀모드 비밀번호 바뀜<br>
+    1.9.0v 새로운 재화와 환생, 그리고 새로운 모드, 비밀모드 비밀모드 변경<br><br>
+    거의 9개월만의 업데이트 재밌게 즐겨주세요!<br>
+    업데이트 날짜: 매 월 1일<br><br>
+    -현재 버전: 1.9.0v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -167,7 +169,8 @@
       <button onclick="showHardcoreMenu()">💀 하드코어 모드</button>
       <button onclick="startInfiniteMode()">♾️ 무한 모드</button>
       <button onclick="showSecretModePassword()">🕵️‍♂️ 비밀모드</button>
-      <button onclick="showAutumnModeMenu()">🍂 가을 모드</button>
+      <button onclick="startLuckyBoxMode()">🎁 럭키박스 모드</button>
+      <button onclick="startOldMode()">🕹️ 옛날모드</button>
     </div>
     <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
   </div>
@@ -190,17 +193,6 @@
   </div>
   <button onclick="startLimitedLandGame()">🌱 새 땅 부족 모드 시작</button>
   <button id="continueLandModeBtn" onclick="continueLimitedLandGame()" style="display:none;">💾 저장된 땅부족 이어하기</button>
-  <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
-</div>
-
-<div id="autumnModeMenu" style="display:none;">
-  <h1>🍂 가을 모드</h1>
-  <div style="margin:10px 0 30px 0; font-size:1.05em;">
-    가을이 되서 나온 가을 모드!<br>
-    한정 모드니 많이 즐겨주세요~<br>
-    비밀번호는 wpwtre(퍼즐)<br>
-  </div>
-  <button onclick="startAutumnGame()">🍁 새 가을 모드 시작</button>
   <button onclick="showChallengeMenu()">← 도전 모드 선택으로</button>
 </div>
 
@@ -228,18 +220,22 @@
     <div id="energy">에너지: 0</div>
     <div id="productionRate">초당 생산량: 0</div>
     <div id="clickPower">클릭당 에너지: 1</div>
+    <div id="magicStone">💎 마석: 0</div>
 <button id="saveGameBtn" onclick="saveGame()">💾 저장하기</button>
-<button id="autumnTraderBtn" style="display:none;" onclick="showAutumnTrader()">🛒 가을 상인</button>
 <button id="pauseButton" onclick="togglePause()" style="display:none;">⏸️ 일시정지</button>
 <button id="gainEnergyBtn" onclick="gainEnergy()">⚡ 석유 시추하기</button>
+<button id="magicStoneBtn" onclick="convertMagicStone()">💎 마석 변환</button>
 <button onclick="backToMainMenu()">🏠 메인 화면으로</button>
 <button id="showAchievementsBtn" onclick="showAchievements()">🏆 업적 보기</button>
-<div id="autumnTraderMenu" class="panel" style="display:none; max-width:720px;">
-  <h2>🛒 가을 상인</h2>
-  <div id="autumnTraderItems" style="display:flex; flex-direction:column; gap:10px;"></div>
-  <div style="margin-top:14px;">
-    <button onclick="closeAutumnTrader()">닫기</button>
-  </div>
+<div class="panel" id="luckyBoxPanel" style="display:none;">
+  <h3>🎁 럭키박스</h3>
+  <button onclick="openEnergyLuckyBox()">⚡ 에너지 럭키박스 열기 - 100,000 에너지</button>
+  <button onclick="openBuildingLuckyBox()">🏗️ 건물 럭키박스 열기 - 500,000 에너지</button>
+</div>
+<div class="panel" id="achievementsPanel" style="display:none;">
+  <h3>🏆 업적</h3>
+  <div id="achievements"></div>
+  <button onclick="hideAchievements()">닫기</button>
 </div>
 <div class="panel">
   <h3>🔧 석유 시추 장비 강화</h3>
@@ -277,17 +273,18 @@
 </div>
 <div class="panel">
   <h3>🌌 우주 생성기</h3>
-  <button id="buyUniverseGenBtn" onclick="buyUniverseGen()">우주 생성기 (+350,000/s) - <span id="universeGenCost">12,500,000</span> 에너지</button>
+ <button id="buyUniverseGenBtn" onclick="buyUniverseGen()">우주 생성기 (+350,000/s) - <span id="universeGenCost">30,000,000</span> 에너지</button>
   <div>보유: <span id="universeGens">0</span></div>
+</div>
+<div class="panel" id="rebirthPanel">
+  <h3>🔄 환생</h3>
+  <button onclick="rebirthGame()">환생하기 (💎 마석 5개 필요)</button>
+  <div>환생 횟수: <span id="rebirthCount">0</span></div>
+  <div>현재 배율: x<span id="rebirthMultiplierText">1</span></div>
 </div>
 <div class="panel" id="terraformPanel">
   <h3>🌍 테라포밍</h3>
   <button id="terraformPlanetBtn" onclick="terraformPlanet()">테라포밍 (10000000 에너지 필요)</button>
-</div>
-    <div class="panel" id="achievementsPanel" style="display:none;">
-  <h3>🏆 업적</h3>
-  <div id="achievements"></div>
-  <button onclick="hideAchievements()">닫기</button>
 </div>
 <div class="panel" id="researchPanel">
   <h3>🧪 연구소</h3>
@@ -300,11 +297,6 @@
   <h3>🔬 연구소 메뉴</h3>
   <div id="researchList" style="margin:10px 0;"></div>
   <button onclick="closeResearchMenu()">← 닫기</button>
-</div>
-<div id="leavesChoicePanel" class="panel" style="display:none;">
-  <h3>🍂 낙엽 이벤트!</h3>
-  <div id="leavesChoices"></div>
-  <button onclick="closeLeavesChoicePanel()">닫기</button>
 </div>
     <button id="restartButton" onclick="restartGame()" style="display: none;">게임 다시 시작하기</button>
     <button id="retryButton" onclick="retryTimeAttack()" style="display: none;">타임어택 다시 도전하기</button>
@@ -401,80 +393,31 @@ function isPaused() {
 }
 let gameEnded = false;
 let energy = 0, clickPower = 1, upgradeCost = 10;
+let magicStones = 0;
+let rebirthCount = 0;
+let rebirthMultiplier = 1;
 let generators = 0, generatorCost = 50;
 let fusionPlants = 0, fusionCost = 500;
 let antimatterPlants = 0, antimatterCost = 20000;
 let dysonSpheres = 0, dysonCost = 100000;
 let blackholes = 0, blackholeCost = 750000;
 let bigbangs = 0, bigbangCost = 5000000;
-let universeGens = 0, universeGenCost = 12500000;
+let universeGens = 0, universeGenCost = 30000000;
 let inTimeAttack = false;
-let _leavesEventActive = false;
-let _windEventActive = false;
-let inAutumnMode = false;
-let autumnLubeOwned = false;
-let windAnchorOwned = false;
-let windPerfumeCharges = 0;
 let inLimitedLandMode = false;
 let timeLeft = 3600;
 let inHardcoreMode = false;
 let timer = null;
 let clickTimestamps = [];
 let inInfiniteMode = false;
+let inOldMode = false;
+let inLuckyBoxMode = false;
 
 let researchLabs = 0;
 let researchLabCost = 500000;
 let researchPoints = 0;
 const researchItems = {
-  energyFuse: {
-  name: "🔌 에너지 생산 퓨즈",
-  cost: 100,
-  unlocked: false,
-  effect: function () {
-    if (!this.unlocked) {
-      if (researchPoints < this.cost) {
-        alert("RP가 부족합니다.");
-        return;
-      }
-      researchPoints -= this.cost;
-      this.unlocked = true;
-      alert("에너지 퓨즈를 만들었습니다!");
-      updateDisplay();
-      return;
-    }
-    // 연구 완료 후에는 언제든 사용 가능
-    if (researchPoints < this.cost) {
-      alert("RP가 부족합니다.");
-      return;
-    }
-    if (window._boostActive) {
-      alert("이미 효과가 발동 중입니다!");
-      return;
-    }
-    researchPoints -= this.cost;
-    window._boostActive = true;
-    window._fuseUsed = true;
-    alert("30초 동안 에너지 생산량이 2배로 증가합니다!");
-    const originalGenerator = generators;
-    const originalFusion = fusionPlants;
-    const originalAnti = antimatterPlants;
-    const originalDyson = dysonSpheres;
-    const originalBlackhole = blackholes;
-    const originalBigbang = bigbangs;
-    window._boostInterval = setInterval(() => {
-      energy += originalGenerator + originalFusion * 10 + originalAnti * 250 + originalDyson * 1000 + originalBlackhole * 5000 + originalBigbang * 100000;
-      updateDisplay();
-    }, 1000);
-    setTimeout(() => {
-      clearInterval(window._boostInterval);
-      window._boostActive = false;
-      alert("⚠️ 에너지 생산량 2배 효과가 종료되었습니다.");
-    }, 30000);
-    updateDisplay();
-  }
-},
-
-asteroidMining: {
+  asteroidMining: {
     name: "🌑 소행성 채굴 기술 강화",
     cost: 200,
     unlocked: false,
@@ -486,6 +429,23 @@ asteroidMining: {
       researchPoints -= 200;
       clickPower += 100000;
       alert("💥 클릭당 에너지가 +100000 증가했습니다! (당신 때문에 온 우주의 소행성이 바닥나고 있습니다)");
+      updateDisplay();
+    }
+  },
+
+planetMining: {
+    name: "🪐 행성 채굴 기술 강화",
+    cost: 3000,
+    unlocked: false,
+    effect: function () {
+      if (researchPoints < 3000) {
+        alert("RP가 부족합니다.");
+        return;
+      }
+      researchPoints -= 3000;
+      clickPower += 2000000;
+      this.unlocked = true;
+      alert("🪐 클릭당 에너지가 +2,000,000 증가했습니다!");
       updateDisplay();
     }
   }
@@ -748,25 +708,23 @@ function applyLanguage() {
    condition: () => researchItems.asteroidMining.unlocked === true, 
    unlocked: false,
    reward: 30000
+ },
+planetResearch: {
+  name: () => "행성 채굴자",
+  condition: () => researchItems.planetMining.unlocked === true,
+  unlocked: false,
+  reward: 500000
  }
 };
 
   // ★★★ UI 전환 함수들 (겹침 완벽 방지!) ★★★
  function hideAllMenus() {
-  const hide = (id) => { const el = document.getElementById(id); if (el) el.style.display = 'none'; };
-  hide('mainMenu');
-  hide('challengeMenu');
-  hide('timeAttackMenu');
-  hide('landModeMenu');
-  hide('hardcoreMenu');
-  hide('autumnModeMenu');
-  hide('gameScreen');
-  hide('noticePanel');
-  hide('researchMenu');
-  hide('achievementsPanel');
-  hide('leavesChoicePanel');
-  hide('timerBox');
-  hide('landLimitNotice');
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('challengeMenu').style.display = 'none';
+  document.getElementById('timeAttackMenu').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('noticePanel').style.display = 'none';
+  document.getElementById('landModeMenu').style.display = 'none';
 }
 
   function showChallengeMenu() {
@@ -793,8 +751,6 @@ function showTimeAttackMenu() {
   document.getElementById('achievementsPanel').style.display = 'none';
   document.getElementById('landLimitNotice').style.display = 'none';
   inHardcoreMode = false;
-  inAutumnMode = false;
-  const tbtn = document.getElementById('autumnTraderBtn'); if (tbtn) tbtn.style.display = 'none';
   if (inTimeAttack) {
     inTimeAttack = false;
     clearInterval(timer);
@@ -818,148 +774,36 @@ function showLandModeMenu() {
     document.getElementById('continueLandModeBtn').style.display = 'none';
   }
 }
- function showGameScreen() {
+function showGameScreen() {
   hideAllMenus();
+
   document.getElementById('gameScreen').style.display = 'block';
+
+  const magicStoneText = document.getElementById('magicStone');
+  const magicStoneBtn = document.getElementById('magicStoneBtn');
+  const rebirthPanel = document.getElementById('rebirthPanel');
+
+  if (inOldMode) {
+    if (magicStoneText) magicStoneText.style.display = 'none';
+    if (magicStoneBtn) magicStoneBtn.style.display = 'none';
+    if (rebirthPanel) rebirthPanel.style.display = 'none';
+  } else {
+    if (magicStoneText) magicStoneText.style.display = 'block';
+    if (magicStoneBtn) magicStoneBtn.style.display = 'inline-block';
+    if (rebirthPanel) rebirthPanel.style.display = 'block';
+  }
+
   document.getElementById('landLimitNotice').style.display = 'none';
+
+const luckyBoxPanel = document.getElementById('luckyBoxPanel');
+
+if (luckyBoxPanel) {
+  luckyBoxPanel.style.display = inLuckyBoxMode ? 'block' : 'none';
+}
 }
 function showHardcoreMenu() {
   hideAllMenus();
   document.getElementById('hardcoreMenu').style.display = 'block';
-}
-function showAutumnTrader() {
-  if (!inAutumnMode) { alert("가을 모드에서만 이용 가능합니다!"); return; }
-  renderAutumnTrader();
-  document.getElementById('autumnTraderMenu').style.display = 'block';
-}
-function closeAutumnTrader() {
-  document.getElementById('autumnTraderMenu').style.display = 'none';
-}
-function showAutumnModeMenu() {
-  hideAllMenus();
-  document.getElementById('autumnModeMenu').style.display = 'block';
-}
-function openLeavesChoicePanel(choices) {
-  const box = document.getElementById('leavesChoices');
-  box.innerHTML = '';
-  choices.forEach(c => {
-    const btn = document.createElement('button');
-    btn.textContent = c.label;
-    btn.onclick = () => { c.onPick(); closeLeavesChoicePanel(); };
-    box.appendChild(btn);
-  });
-  document.getElementById('leavesChoicePanel').style.display = 'block';
-}
-function closeLeavesChoicePanel() {
-  document.getElementById('leavesChoicePanel').style.display = 'none';
-}
-function renderAutumnTrader() {
-  const box = document.getElementById('autumnTraderItems');
-  if (!box) return;
-  box.innerHTML = '';
-
-  const items = [
-    // 🛢️ 가을 강화 윤활유 — RP 450, 영구(이번 런) 1회: 클릭당 에너지 +10,000
-    {
-      id: 'autumn_lube',
-      name: '🛢️ 가을 강화 윤활유',
-      desc: '영구 효과(이번 런): 클릭당 에너지 +10,000 (1회 한정)',
-      cost: 450, currency: 'RP',
-      canBuy: () => !autumnLubeOwned,
-      buy: () => {
-        if (researchPoints < 450) return alert('RP가 부족합니다.');
-        researchPoints -= 450;
-        autumnLubeOwned = true;
-        clickPower += 10000;
-        alert('클릭당 에너지 +10,000! (가을 강화 윤활유 적용)');
-        updateDisplay(); renderAutumnTrader();
-      }
-    },
-
-    // ⚓ 바람 닻 — RP 300, 단일 보유: 다음 거센 바람 패널티 1회 무효
-    {
-      id: 'wind_anchor',
-      name: '⚓ 바람 닻',
-      desc: '다음 거센 바람 패널티 1회 무효 (중복 보유 불가)',
-      cost: 300, currency: 'RP',
-      canBuy: () => !windAnchorOwned,
-      buy: () => {
-        if (researchPoints < 300) return alert('RP가 부족합니다.');
-        researchPoints -= 300;
-        windAnchorOwned = true;
-        alert('바람 닻 장착: 다음 거센 바람 패널티를 막아냅니다.');
-        updateDisplay(); renderAutumnTrader();
-      }
-    },
-
-    // 🌬️ 산들바람 향 — RP 250, 무한: 다음 산들바람 확정(거센 바람 대체 없음)
-    {
-      id: 'wind_perfume',
-      name: '🌬️ 산들바람 향',
-      desc: '다음 산들바람을 확정 발생(거센 바람으로 대체되지 않음)',
-      cost: 250, currency: 'RP',
-      canBuy: () => true,
-      buy: () => {
-        if (researchPoints < 250) return alert('RP가 부족합니다.');
-        researchPoints -= 250;
-        windPerfumeCharges += 1;
-        alert('산들바람 향을 1회 충전했습니다.');
-        updateDisplay(); renderAutumnTrader();
-      }
-    },
-
-    // 🎲 바람의 주사위 — RP 120, 즉시 50%:+1,500,000 / 50%:-750,000
-    {
-      id: 'wind_dice',
-      name: '🎲 바람의 주사위',
-      desc: '즉시 50%: +1,500,000 / 50%: -750,000',
-      cost: 120, currency: 'RP',
-      canBuy: () => true,
-      buy: () => {
-        if (researchPoints < 120) return alert('RP가 부족합니다.');
-        researchPoints -= 120;
-        if (Math.random() < 0.5) { energy += 1500000; alert('행운! 에너지 +1,500,000'); }
-        else { energy = Math.max(0, energy - 750000); alert('앗… 에너지 -750,000'); }
-        updateDisplay(); renderAutumnTrader();
-      }
-    },
-
-    // 📦 양자 압축 팩 — RP 1000, 즉시 +12,000,000
-    {
-      id: 'quantum_pack',
-      name: '📦 양자 압축 팩',
-      desc: '즉시 에너지 +12,000,000',
-      cost: 1000, currency: 'RP',
-      canBuy: () => true,
-      buy: () => {
-        if (researchPoints < 1000) return alert('RP가 부족합니다.');
-        researchPoints -= 1000;
-        energy += 12000000;
-        alert('에너지 +12,000,000 획득!');
-        updateDisplay(); renderAutumnTrader();
-      }
-    },
-  ];
-
-  items.forEach(it => {
-    const row = document.createElement('div');
-    row.style.display = 'flex';
-    row.style.justifyContent = 'space-between';
-    row.style.alignItems = 'center';
-    row.style.gap = '8px';
-
-    const left = document.createElement('div');
-    left.innerHTML = `<b>${it.name}</b><br><small>${it.desc}</small>`;
-
-    const btn = document.createElement('button');
-    btn.textContent = `${it.currency} ${it.cost} 구매`;
-    btn.disabled = !it.canBuy();
-    btn.onclick = it.buy;
-
-    row.appendChild(left);
-    row.appendChild(btn);
-    box.appendChild(row);
-  });
 }
 function startHardcoreGame() {
   inHardcoreMode = true;
@@ -971,6 +815,7 @@ function startHardcoreGame() {
   dysonSpheres = 0; dysonCost = 100000;
   blackholes = 0; blackholeCost = 750000;
   bigbangs = 0; bigbangCost = 5000000;
+  universeGenCost = 30000000;
 
   document.getElementById('hardcoreMenu').style.display = 'none';
 
@@ -983,31 +828,94 @@ function startHardcoreGame() {
   updateDisplay();
 }
 
-function startAutumnGame() {
-  inAutumnMode = true;
+function startOldMode() {
+  inOldMode = true;
   inTimeAttack = false;
   inLimitedLandMode = false;
   inHardcoreMode = false;
   inInfiniteMode = false;
+
   gameEnded = false;
 
-  // 기본값 초기화
-  energy = 0; clickPower = 1; upgradeCost = 10;
-  generators = 0; generatorCost = 50;
-  fusionPlants = 0; fusionCost = 500;
-  antimatterPlants = 0; antimatterCost = 20000;
-  dysonSpheres = 0; dysonCost = 100000;
-  blackholes = 0; blackholeCost = 750000;
-  bigbangs = 0; bigbangCost = 5000000;
-  universeGens = 0; universeGenCost = 12500000;
+  energy = 0;
+  clickPower = 1;
+  upgradeCost = 10;
+
+  generators = 0;
+  generatorCost = 50;
+
+  fusionPlants = 0;
+  fusionCost = 500;
+
+  antimatterPlants = 0;
+  antimatterCost = 20000;
+
+  dysonSpheres = 0;
+  dysonCost = 100000;
+
+  blackholes = 0;
+  blackholeCost = 750000;
+
+  bigbangs = 0;
+  bigbangCost = 5000000;
+
+  universeGens = 0;
+  universeGenCost = 12500000;
+
+  researchLabs = 0;
+  researchLabCost = 500000;
+  researchPoints = 0;
 
   showGameScreen();
+
   document.getElementById('timerBox').style.display = 'none';
   document.getElementById('retryButton').style.display = 'none';
   document.getElementById('landLimitNotice').style.display = 'none';
 
-  const tbtn = document.getElementById('autumnTraderBtn');
-  if (tbtn) tbtn.style.display = 'inline-block';
+  updateDisplay();
+}
+
+function startLuckyBoxMode() {
+  inLuckyBoxMode = true;
+  inOldMode = false;
+  inTimeAttack = false;
+  inLimitedLandMode = false;
+  inHardcoreMode = false;
+  inInfiniteMode = false;
+
+  gameEnded = false;
+
+  energy = 0;
+  clickPower = 1;
+  upgradeCost = 10;
+
+  generators = 0;
+  generatorCost = 50;
+
+  fusionPlants = 0;
+  fusionCost = 500;
+
+  antimatterPlants = 0;
+  antimatterCost = 20000;
+
+  dysonSpheres = 0;
+  dysonCost = 100000;
+
+  blackholes = 0;
+  blackholeCost = 750000;
+
+  bigbangs = 0;
+  bigbangCost = 5000000;
+
+  universeGens = 0;
+  universeGenCost = 30000000;
+
+  showGameScreen();
+
+  document.getElementById('luckyBoxPanel').style.display = 'block';
+  document.getElementById('timerBox').style.display = 'none';
+  document.getElementById('retryButton').style.display = 'none';
+  document.getElementById('landLimitNotice').style.display = 'none';
 
   updateDisplay();
 }
@@ -1023,6 +931,7 @@ function startAutumnGame() {
   dysonSpheres = 0; dysonCost = 100000;
   blackholes = 0; blackholeCost = 750000;
   bigbangs = 0; bigbangCost = 5000000;
+  universeGenCost = 30000000;
   timeLeft = 3600;
   showGameScreen();
   document.getElementById('timerBox').style.display = 'block';
@@ -1057,6 +966,7 @@ function startLimitedLandGame() {
   dysonSpheres = 0; dysonCost = 100000;
   blackholes = 0; blackholeCost = 750000;
   bigbangs = 0; bigbangCost = 5000000;
+  universeGenCost = 30000000;
   showGameScreen();
   document.getElementById('timerBox').style.display = 'none';
   document.getElementById('retryButton').style.display = 'none';
@@ -1268,7 +1178,7 @@ function removeLimitedLandSave() {
   clickTimestamps.push(now);
 
   document.getElementById('clickSound').play();
-  energy += clickPower;
+  energy += clickPower * rebirthMultiplier;
   updateDisplay();
 }
   function buyUpgrade() {
@@ -1385,12 +1295,85 @@ function buyUniverseGen() {
   }
 }
 
+function convertMagicStone() {
+  if (inOldMode) {
+    return;
+  }
+
+  if (energy >= 10000000) {
+    energy -= 10000000;
+    magicStones += 1;
+
+    alert("💎 마석 1개로 변환했습니다!");
+    updateDisplay();
+  } else {
+    alert("에너지가 부족합니다! (1,000만 필요)");
+  }
+}
+
+function rebirthGame() {
+  if (inOldMode) {
+  return;
+}
+ if (magicStones < 5) {
+  alert("💎 마석이 부족한데요? 거지야");
+  return;
+}
+  if (!confirm("정말 환생하시겠습니까?\n현재 진행도가 초기화됩니다.")) {
+    return;
+  }
+
+  rebirthCount += 1;
+  rebirthMultiplier *= 1.5;
+
+  magicStones = 0;
+
+  energy = 0;
+  clickPower = 1;
+  upgradeCost = 10;
+
+  generators = 0;
+  generatorCost = 50;
+
+  fusionPlants = 0;
+  fusionCost = 500;
+
+  antimatterPlants = 0;
+  antimatterCost = 20000;
+
+  dysonSpheres = 0;
+  dysonCost = 100000;
+
+  blackholes = 0;
+  blackholeCost = 750000;
+
+  bigbangs = 0;
+  bigbangCost = 5000000;
+
+  universeGens = 0;
+  universeGenCost = 30000000;
+
+  researchLabs = 0;
+  researchLabCost = 500000;
+  researchPoints = 0;
+
+  gameEnded = false;
+
+  saveGame();
+  updateDisplay();
+
+  alert("🔄 환생 완료! 발전소 생산량과 석유 시추 에너지가 1.5배 증가했습니다!");
+}
+
 function allAchievementsUnlockedExceptTerraform() {
   return Object.keys(achievements)
     .every(key => achievements[key].unlocked);
 }
 function updateDisplay() {
   document.getElementById('energy').textContent = `에너지: ${formatNumber(energy)}`;
+  document.getElementById('rebirthCount').textContent = formatNumber(rebirthCount);
+  document.getElementById('rebirthMultiplierText').textContent = rebirthMultiplier.toFixed(2);
+  document.getElementById('magicStone').textContent = `💎 마석: ${formatNumber(magicStones)}`;
   document.getElementById('researchLabs').textContent = formatNumber(researchLabs);
   document.getElementById('researchLabCost').textContent = formatNumber(researchLabCost);
   document.getElementById('researchPoints').textContent = formatNumber(researchPoints);
@@ -1414,6 +1397,7 @@ function updateDisplay() {
   document.getElementById('buyDysonSphereBtn').innerHTML =
     `양자 충돌기 (+${formatNumber(1000)}/s) - <span id="dysonCost">${formatNumber(dysonCost)}</span> 에너지`;
 
+  if (inOldMode && universeGens === 0) {universeGenCost = 12500000;}
   document.getElementById('universeGenCost').textContent = formatNumber(universeGenCost);
   document.getElementById('universeGens').textContent = formatNumber(universeGens);
   document.getElementById('buyUniverseGenBtn').innerHTML =
@@ -1425,16 +1409,16 @@ function updateDisplay() {
   document.getElementById('bigbangs').textContent = formatNumber(bigbangs);
 
   document.getElementById('productionRate').textContent =
-    `초당 생산량: ${formatNumber(
-      generators +
-      fusionPlants * 10 +
-      antimatterPlants * 250 +
-      dysonSpheres * 1000 +
-      blackholes * 5000 +
-      bigbangs * 100000 +
-      universeGens * 350000
-    )}`;
-
+  `초당 생산량: ${formatNumber(Math.floor((
+    generators +
+    fusionPlants * 10 +
+    antimatterPlants * 250 +
+    dysonSpheres * 1000 +
+    blackholes * 5000 +
+    bigbangs * 100000 +
+    universeGens * 350000
+  ) * rebirthMultiplier))}`;
+  
   document.getElementById('buyUpgradeBtn').innerHTML =
     `석유 시추 장비 강화 (+${formatNumber(1)}) - <span id="upgradeCost">${formatNumber(upgradeCost)}</span> 에너지`;
   document.getElementById('buyGeneratorBtn').innerHTML =
@@ -1446,8 +1430,13 @@ function updateDisplay() {
   document.getElementById('buyBigBangBtn').innerHTML =
     `블랙홀 에너지 (+${formatNumber(100000)}/s) - <span id="bigbangCost">${formatNumber(bigbangCost)}</span> 에너지`;
 
+ if (inOldMode) {
   document.querySelector('#terraformPanel button').textContent =
-    `테라포밍 (${formatNumber(inHardcoreMode ? 50000000 : 30000000)} 에너지 필요)`;
+    `테라포밍 (30,000,000 에너지 필요)`;
+} else {
+  document.querySelector('#terraformPanel button').textContent =
+    `테라포밍 (환생 5회 + 💎 마석 10개 필요)`;
+}
 
   updateBackground();
 
@@ -1548,19 +1537,6 @@ setInterval(() => {
   }
 }, 60000);
 
-setInterval(() => {
-  if (inAutumnMode && !gameEnded && !_windEventActive) {
-    triggerLeavesEvent();
-  }
-}, 120000); // 120,000ms = 2분
-
-// 🍃 산들바람/거센 바람: 가을 모드에서 1분마다 시도 (낙엽과 겹치지 않음)
-setInterval(() => {
-  if (inAutumnMode && !gameEnded && !_leavesEventActive) {
-    triggerWindEvent();
-  }
-}, 60000); // 60,000ms = 1분
-
 function triggerAsteroidEvent() {
   for (const plant of plantOrder) {
     if (window[plant.key] > 0) {
@@ -1571,84 +1547,6 @@ function triggerAsteroidEvent() {
     }
   }
   // 아무 발전소도 없을 때는 아무 일도 없음
-}
-
-function triggerLeavesEvent() {
-  if (!inAutumnMode || gameEnded || _leavesEventActive) return;
-  _leavesEventActive = true;
-
-  const randInt = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
-
-  const choices = [
-    {
-      label: "낙엽을 치운다 (에너지 +10,000~500,000)",
-      onPick: () => {
-        const gain = randInt(10000, 500000);
-        energy += gain;
-        alert(`에너지 +${gain.toLocaleString()} 획득!`);
-        updateDisplay();
-        _leavesEventActive = false;
-      }
-    },
-    {
-      label: "낙엽을 연구한다 (클릭당 +100~5,000)",
-      onPick: () => {
-        const inc = randInt(100, 5000);
-        clickPower += inc;
-        alert(`클릭당 에너지 +${inc.toLocaleString()}!`);
-        updateDisplay();
-        _leavesEventActive = false;
-      }
-    }
-  ];
-
-  openLeavesChoicePanel(choices);
-}
-
-// 🍂 가을 모드: 산들바람/거센 바람 이벤트
-function triggerWindEvent() {
-  if (!inAutumnMode || gameEnded) return;
-  if (_leavesEventActive || _windEventActive) return; // 낙엽과 겹치지 않게, 중복 방지
-
-  _windEventActive = true;
-
-  // 25% 확률로 '거센 바람'이 산들바람을 대체
-  let isGale = Math.random() < 0.25;
-
-  // ‘산들바람 향’이 있으면 이번 회차는 산들바람 확정
-  if (windPerfumeCharges > 0) {
-    isGale = false;
-    windPerfumeCharges -= 1;
-    alert('🌬️ 산들바람 향 덕분에 이번에는 산들바람이 불었습니다!');
-  }
-
-  if (isGale) {
-    // 1단계 알림
-    alert("💨 거센 바람이 불어왔습니다!");
-    // 결과 처리
-    if (Math.random() < 0.9) {
-      if (windAnchorOwned) {
-        windAnchorOwned = false;  // 1회 소모
-        alert("⚓ 바람 닻이 패널티를 막아냈습니다!");
-      } else {
-        energy = Math.max(0, energy - 2500000);
-        alert("에너지가 2,500,000 줄어들었습니다...");
-      }
-    } else {
-      energy += 5000000;
-      alert("행운의 돌풍! 에너지가 5,000,000 늘어났습니다!");
-    }
-    updateDisplay();
-  } else {
-    // 산들바람: 즉시 에너지 +100,000 ~ +250,000
-    const randInt = (lo, hi) => Math.floor(Math.random() * (hi - lo + 1)) + lo;
-    const gain = randInt(100000, 250000);
-    energy += gain;
-    alert(`🍃 산들바람이 스쳤다! 에너지 +${gain.toLocaleString()}`);
-    updateDisplay();
-  }
-
-  setTimeout(() => { _windEventActive = false; }, 500);
 }
 
  function triggerExplosionEvent() {
@@ -1689,21 +1587,111 @@ function triggerWindEvent() {
     panel.appendChild(div);
     }
    }
-  function terraformPlanet() {
+function openEnergyLuckyBox() {
+  const cost = 100000;
+
+  if (!inLuckyBoxMode) return;
+
+  if (energy < cost) {
+    alert("에너지가 부족합니다! (100,000 필요)");
+    return;
+  }
+
+  energy -= cost;
+
+  const reward = Math.floor(Math.random() * (1000000 - 50000 + 1)) + 50000;
+  energy += reward;
+
+  alert(`⚡ 에너지 럭키박스 결과!\n에너지 ${formatNumber(reward)} 획득!`);
+  updateDisplay();
+}
+
+function openBuildingLuckyBox() {
+  const cost = 500000;
+
+  if (!inLuckyBoxMode) return;
+
+  if (energy < cost) {
+    alert("에너지가 부족합니다! (500,000 필요)");
+    return;
+  }
+
+  energy -= cost;
+
+  const rewards = [
+    () => { generators += 5; return "☀️ 태양광 발전기 5개 획득!"; },
+    () => { fusionPlants += 3; return "🌞 핵융합 발전소 3개 획득!"; },
+    () => { antimatterPlants += 1; return "⚛️ 반물질 발전소 1개 획득!"; },
+    () => { dysonSpheres += 1; return "♈ 양자 충돌기 1개 획득!"; },
+    () => { blackholes += 1; return "🌀 다이슨 구체 1개 획득!"; }
+  ];
+
+  const result = rewards[Math.floor(Math.random() * rewards.length)]();
+
+  alert(`🏗️ 건물 럭키박스 결과!\n${result}`);
+  updateDisplay();
+}
+function terraformPlanet() {
+
+if (inOldMode) {
+
   let required = inHardcoreMode ? 50000000 : 30000000;
+
   if (energy >= required) {
+
     if (inTimeAttack) {
       endTimeAttack(true);
     } else {
+
       gameEnded = true;
+
       alert("🎉 테라포밍 성공! 게임이 끝났습니다!");
-      document.getElementById('restartButton').style.display = 'inline-block';
+
+      document.getElementById('restartButton').style.display =
+        'inline-block';
     }
+
   } else {
     alert(`에너지가 부족합니다! (${formatNumber(required)} 필요)`);
   }
+
+  return;
 }
-  function restartGame() {
+
+  if (rebirthCount < 5) {
+    alert("🔄 최소 5번 환생해야 합니다!");
+    return;
+  }
+
+  if (magicStones < 10) {
+    alert("💎 마석 10개가 필요합니다!");
+    return;
+  }
+
+  if (!confirm("정말 테라포밍하시겠습니까?\n💎 마석 10개가 소모됩니다.")) {
+    return;
+  }
+
+  // 마석만 감소
+  magicStones -= 10;
+
+  if (inTimeAttack) {
+    endTimeAttack(true);
+  } else {
+
+    gameEnded = true;
+
+    alert("🎉 테라포밍 성공! 게임이 끝났습니다!");
+
+    document.getElementById('restartButton').style.display =
+      'inline-block';
+  }
+
+  saveGame();
+  updateDisplay();
+}
+
+   function restartGame() {
     energy = 0;
     clickPower = 1;
     upgradeCost = 10;
@@ -1726,6 +1714,10 @@ function triggerWindEvent() {
 
   // ★★★ 세이브/로드 함수 ★★★
   function saveGame() {
+   localStorage.setItem('magicStones', magicStones);
+   localStorage.setItem('rebirthCount', rebirthCount);
+   localStorage.setItem('rebirthMultiplier', rebirthMultiplier);
+   localStorage.setItem('magicStones', magicStones);
    localStorage.setItem('energy', energy);
    localStorage.setItem('clickPower', clickPower);
    localStorage.setItem('upgradeCost', upgradeCost);
@@ -1759,6 +1751,9 @@ function triggerWindEvent() {
   setInterval(saveGame, 1000);
   window.addEventListener('beforeunload', saveGame);
   function loadGame() {
+    rebirthCount = parseInt(localStorage.getItem('rebirthCount')) || 0;
+    rebirthMultiplier = parseFloat(localStorage.getItem('rebirthMultiplier')) || 1;
+    magicStones = parseInt(localStorage.getItem('magicStones')) || 0;
     energy = parseInt(localStorage.getItem('energy')) || 0;
     clickPower = parseInt(localStorage.getItem('clickPower')) || 1;
     upgradeCost = parseInt(localStorage.getItem('upgradeCost')) || 10;
@@ -1846,6 +1841,7 @@ function loadInfiniteGame() {
 
   // ★★★ 메인/기존 함수들과 연동: ★★★
   function startNewGame() {
+  inOldMode = false;
   localStorage.clear();
   hideAllMenus();
   document.getElementById('gameScreen').style.display = 'block';
@@ -1881,6 +1877,7 @@ function startInfiniteMode() {
   dysonSpheres = 0; dysonCost = 100000;
   blackholes = 0; blackholeCost = 750000;
   bigbangs = 0; bigbangCost = 5000000;
+  universeGens = 0; universeGenCost = 30000000;
 
   hideAllMenus();
   document.getElementById('gameScreen').style.display = 'block';
@@ -1897,7 +1894,7 @@ function startInfiniteMode() {
   researchPoints += researchLabs;
   if (inTimeAttack) {
     if (isPaused()) return;
-   energy += generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000 + universeGens * 350000;
+   energy += (generators + fusionPlants * 10 + antimatterPlants * 250 + dysonSpheres * 1000 + blackholes * 5000 + bigbangs * 100000 + universeGens * 350000) * rebirthMultiplier;
     updateDisplay();
     saveTimeAttack();
   } else if (inLimitedLandMode) {
@@ -2057,7 +2054,7 @@ function closeSecretModeModal() {
 // 비밀번호 확인
 function checkSecretModePassword() {
   const pw = document.getElementById('secretPasswordInput').value;
-  if (pw === "202543") {
+  if (pw === "6411") {
     closeSecretModeModal();
     startSecretMode();
   } else {
