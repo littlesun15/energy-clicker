@@ -6,6 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
+@keyframes flicker{
+  from{
+    opacity:1;
+    text-shadow:
+      0 0 5px #ff4040,
+      0 0 10px #ff4040,
+      0 0 20px #ff0000,
+      0 0 40px #ff0000;
+  }
+  to{
+    opacity:.6;
+    text-shadow:
+      0 0 2px #ff4040,
+      0 0 6px #ff4040,
+      0 0 12px #ff0000,
+      0 0 25px #ff0000;
+  }
+}
     body {
       font-family: 'Orbitron', sans-serif;
       background: linear-gradient(to bottom, #0b0c2a, #1a1e3f, #292f5c);
@@ -103,6 +121,42 @@
       padding: 15px 35px;
       border-radius: 18px;
     }
+  #dialogOverlay{
+  position:fixed;
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.8);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:99999;
+}
+
+#dialogBox{
+  width:700px;
+  max-width:90%;
+  background:#111;
+  border:2px solid #666;
+  border-radius:15px;
+  padding:25px;
+  color:white;
+  font-size:28px;
+  line-height:1.6;
+  text-align:center;
+  box-shadow:0 0 30px black;
+}
+
+#dialogText{
+  min-height:120px;
+}
+
+#dialogNext{
+  margin-top:20px;
+  padding:10px 30px;
+  font-size:22px;
+}
   </style>
 </head>
 <body>
@@ -127,15 +181,14 @@
   <h1>📢 공지사항</h1>
   <div id="noticeContent" style="margin:20px; color:#e0f7fa; font-size:1.15em;">
     -패치노트-<br>
-    1.7.0v 발전소 아예 개편, 테라포밍 가격 상승, 연구소 가격 상승률 1.1, 연구소, RP 저장됨, 버그 수정,<br>
-    응축된 에너지 삭제, 달성 못한 업적도 표시, 타임어택 시간 1시간<br>
     1.7.1v 업적 시스템 수정<br>
     1.8.0v 한정 모드와 한정 상인 등장, 비밀모드 비밀번호 바뀜<br>
     1.9.0v 새로운 재화와 환생, 그리고 새로운 모드, 비밀모드 비밀모드 변경<br>
-    2.0.0v 엔딩 추가<br><br>
+    2.0.0v 엔딩 추가<br>
+    2.0.1v 기타 수정<br><br>
     도전 메뉴에 있는 모드를 하고 나면 반드시 설정에 들어가서 게임 리셋을 하시는 것을 추천드립니다.<br>
     (단, 새 게임 시작(기본모드)는 예외)<br><br>
-    -현재 버전: 2.0.0v
+    -현재 버전: 2.0.1v
   </div>
   <button onclick="closeNotice()">닫기</button>
 </div>
@@ -348,6 +401,52 @@ function getT(key) {
 let timeAttackPaused = false;
 window._fuseUsed = false;
 
+let dialogueIndex = 0;
+let dialogueList = [];
+let dialogueFinish = null;
+
+function startDialogue(messages, finish) {
+  dialogueIndex = 0;
+  dialogueList = messages;
+  dialogueFinish = finish;
+
+  document.getElementById("dialogOverlay").style.display = "flex";
+  showDialogue();
+}
+
+function showDialogue() {
+  document.getElementById("dialogText").innerHTML = dialogueList[dialogueIndex];
+}
+
+function stopDialogue() {
+  document.getElementById("dialogOverlay").style.display = "none";
+  dialogueIndex = 0;
+  dialogueList = [];
+  dialogueFinish = null;
+}
+
+window.addEventListener("load", function () {
+  document.getElementById("dialogNext").onclick = function () {
+    dialogueIndex++;
+
+    if (dialogueIndex >= dialogueList.length) {
+      document.getElementById("dialogOverlay").style.display = "none";
+
+      if (dialogueFinish) {
+        dialogueFinish();
+      }
+
+      return;
+    }
+
+    showDialogue();
+  };
+
+  document.getElementById("dialogStop").onclick = function () {
+    stopDialogue();
+  };
+});
+
 const plantOrder = [
   { key: 'bigbangs', name: '블랙홀 에너지' },
   { key: 'blackholes', name: '다이슨 구체' },
@@ -472,43 +571,40 @@ destroyPlanet: {
     if (sawDestroyEnding) {
       const secondMessages = [
         "내 예상이 맞았네.",
-        "너는 그냥 심심할때마다 파괴나 하는 사이코지, 안그래?",
+        "<span style='color:#ff4040;font-weight:bold;text-shadow:0 0 4px #ff4040,0 0 8px #ff4040,0 0 16px #ff2020,0 0 32px #ff0000,0 0 48px #ff0000;'>너는 그냥 심심할때마다 행성 파괴나 하는 사이코지, 안 그래?</span>",
         "..."
       ];
 
-      alert(secondMessages[destroyClickCount]);
+      startDialogue(secondMessages,function(){
 
-      destroyClickCount++;
+    destroyClickCount=3;
+    showDestroyEnding();
 
-      if (destroyClickCount >= 3) {
-        showDestroyEnding();
-      }
-
+  });
       return;
     }
 
     const messages = [
-      "왜 그러는 거야...?",
-      "도대체 왜 이 행성을 파괴하려는 거야...?",
+      "왜 그러는 거야...",
+      "도대체 왜 이 행성을 파괴하려는 거야...",
       "이 선택은 안 좋은 결말일거 같아.",
       "그러니 멈춰야 해.",
       "잘 생각해봐. 이 행성을 파괴하면 이 행성에 있는 너도 죽을거야.",
       "그래도 하겠다고?",
       "굳이 목숨을 바쳐서 이 행성을 파괴하는것은 모두에게 안좋을 거야.",
       "...",
-      "엔딩이 꼭 하나일 필요는 없잖아? 근데 그 엔딩이...",
-      "더 좋은 엔딩이라고 어떻게 장담하지?",
+      "그래, 엔딩이 꼭 하나일 필요는 없잖아? 근데 그 엔딩이...",
+      "<span style='color:#ff3030;font-weight:bold;text-shadow:0 0 5px #ff3030,0 0 12px #ff0000,0 0 25px #ff0000;'>더욱 나쁜게 아니라고 어떻게 장담하지?</span>",
       "...",
       "..."
     ];
 
-    alert(messages[destroyClickCount]);
+    startDialogue(messages, function(){
 
-    destroyClickCount++;
+    destroyClickCount = 12;
+    showDestroyEnding();
 
-    if (destroyClickCount >= 12) {
-      showDestroyEnding();
-    }
+   });
   }
 }
 };
@@ -1514,6 +1610,8 @@ function updateDisplay() {
   } else {
     document.getElementById('terraformPanel').style.display = 'block';
   }
+
+
   // ★★★ 업적 왕 패널 생성/삭제 ★★★
   const kingPanelId = "achievementKingPanel";
   let kingPanel = document.getElementById(kingPanelId);
@@ -1594,7 +1692,15 @@ function showDestroyEnding() {
       text-align:center;
       padding:20px;
     ">
-      <h1 style="font-size:2em;">(당신은 기다리고 기다려 봤지만 모두 다 죽어서 말할 사람이 없었다.)</h1>
+      <h1 style="font-size:2em;
+      color:#ff4040;
+      font-weight:bold;
+     text-shadow:
+      0 0 5px #ff4040,
+      0 0 10px #ff4040,
+      0 0 20px #ff0000,
+      0 0 40px #ff0000,
+      0 0 60px #ff0000;">(...)</h1>
       <button onclick="location.reload()" style="
         margin-top:30px;
         padding:12px 25px;
@@ -2239,6 +2345,13 @@ function toggleSecretAutoClick() {
     <button onclick="checkSecretModePassword()">확인</button>
     <button onclick="closeSecretModeModal()">닫기</button>
   </div>
+</div>
+<div id="dialogOverlay">
+    <div id="dialogBox">
+        <div id="dialogText"></div>
+        <button id="dialogNext">진행</button>
+        <button id="dialogStop">멈춤</button>
+    </div>
 </div>
 </body>
 </html>
