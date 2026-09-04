@@ -2275,7 +2275,7 @@ function closeSecretModeModal() {
 // 비밀번호 확인
 function checkSecretModePassword() {
   const pw = document.getElementById('secretPasswordInput').value;
-  if (pw === "6411") {
+  if (pw === "70") {
     closeSecretModeModal();
     startSecretMode();
   } else {
@@ -2312,13 +2312,13 @@ function startSecretMode() {
   if (!document.getElementById('secretAutoBtn')) {
     let btn = document.createElement('button');
     btn.id = 'secretAutoBtn';
-    btn.textContent = '🛠️ 오토 클릭 키기';
+    btn.textContent = '갠톡';
     btn.onclick = toggleSecretAutoClick;
     btn.style.marginTop = '18px';
     document.getElementById('gameScreen').appendChild(btn);
   }
   document.getElementById('secretAutoBtn').style.display = 'inline-block';
-  document.getElementById('secretAutoBtn').textContent = '🛠️ 오토 클릭 키기';
+  document.getElementById('secretAutoBtn').textContent = '갠톡';
 }
 
 // 오토 클릭 on/off
